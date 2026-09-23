@@ -8,7 +8,7 @@
             <sparkle:version>2</sparkle:version>
             <sparkle:shortVersionString>0.1.01</sparkle:shortVersionString>
             <sparkle:minimumSystemVersion>12.0</sparkle:minimumSystemVersion>
-            <enclosure url="https://github.com/hqdvn/MyOpenKey/releases/download/v0.1.01/MyOpenKey-0.1.01.dmg" length="3626371" type="application/octet-stream" sparkle:edSignature="+xllodo2we+McCQdo3trbv3qLtLNF0RUzUfzBG4XhHrTx2KTwxY2KHfwKAJYVkF+5OiVNuqfHsugDsCsBbq3DQ=="/>
+            <enclosure url="https://github.com/hqdvn/MyOpenKey/releases/download/v0.1.01/MyOpenKey-0.1.01.dmg" length="3575547" type="application/octet-stream" sparkle:edSignature="SQAcQ1qAEn2hKD9vmaiVI/8P+ex8rW5ltfMtmgvtp2gUFa7tophqHGgaIif5aFlLNoBLGeO9EddqfEu7+wt2Cg=="/>
         </item>
         <item>
             <title>0.1.00</title>
