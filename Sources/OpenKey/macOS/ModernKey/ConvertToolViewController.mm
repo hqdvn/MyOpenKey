@@ -1,19 +1,151 @@
 //
 //  ConvertToolViewController.mm
-//  OpenKey
+//  MyOpenKey
 //
 //  Created by Tuyen on 9/4/19.
 //  Copyright © 2019 Tuyen Mai. All rights reserved.
+//  Modified 2026 by Huỳnh Quốc Đạt for MyOpenKey (GPLv3).
 //
 
-#import "AppDelegate.h"
 #import "ConvertToolViewController.h"
+#import "MyOpenKey-Swift.h"
+#import "AppDelegate.h"
 #import "OpenKeyManager.h"
-#import "ConvertTool.h"
+#include "ConvertTool.h"
 
 extern AppDelegate* appDelegate;
 
-@interface ConvertToolViewController ()
+@implementation ConvertToolBridge
+
++ (instancetype)shared {
+    static ConvertToolBridge *instance = nil;
+    static dispatch_once_t onceToken;
+    dispatch_once(&onceToken, ^{
+        instance = [[ConvertToolBridge alloc] init];
+    });
+    return instance;
+}
+
+- (instancetype)init {
+    self = [super init];
+    if (self) {
+        NSUserDefaults *defs = [NSUserDefaults standardUserDefaults];
+        _fromCode = [defs integerForKey:@"convertToolFromCode"];
+        _toCode = [defs integerForKey:@"convertToolToCode"];
+        _removeMark = [defs integerForKey:@"convertToolRemoveMark"] != 0;
+        _alertWhenCompleted = ![defs boolForKey:@"convertToolDontAlertWhenCompleted"];
+
+        if ([defs integerForKey:@"convertToolToAllCaps"]) {
+            _caseOption = 1;
+        } else if ([defs integerForKey:@"convertToolToAllNonCaps"]) {
+            _caseOption = 2;
+        } else if ([defs integerForKey:@"convertToolToCapsFirstLetter"]) {
+            _caseOption = 3;
+        } else if ([defs integerForKey:@"convertToolToCapsEachWord"]) {
+            _caseOption = 4;
+        } else {
+            _caseOption = 0;
+        }
+    }
+    return self;
+}
+
+- (NSArray<NSString *> *)availableCodeTables {
+    return [OpenKeyManager getTableCodes];
+}
+
+- (void)setFromCode:(NSInteger)fromCode {
+    _fromCode = fromCode;
+    convertToolFromCode = (Uint8)fromCode;
+    [[NSUserDefaults standardUserDefaults] setInteger:fromCode forKey:@"convertToolFromCode"];
+}
+
+- (void)setToCode:(NSInteger)toCode {
+    _toCode = toCode;
+    convertToolToCode = (Uint8)toCode;
+    [[NSUserDefaults standardUserDefaults] setInteger:toCode forKey:@"convertToolToCode"];
+}
+
+- (void)reverseCodes {
+    NSInteger temp = self.fromCode;
+    self.fromCode = self.toCode;
+    self.toCode = temp;
+}
+
+- (void)setCaseOption:(NSInteger)option {
+    _caseOption = option;
+    convertToolToAllCaps = (option == 1);
+    convertToolToAllNonCaps = (option == 2);
+    convertToolToCapsFirstLetter = (option == 3);
+    convertToolToCapsEachWord = (option == 4);
+
+    NSUserDefaults *defs = [NSUserDefaults standardUserDefaults];
+    [defs setInteger:convertToolToAllCaps forKey:@"convertToolToAllCaps"];
+    [defs setInteger:convertToolToAllNonCaps forKey:@"convertToolToAllNonCaps"];
+    [defs setInteger:convertToolToCapsFirstLetter forKey:@"convertToolToCapsFirstLetter"];
+    [defs setInteger:convertToolToCapsEachWord forKey:@"convertToolToCapsEachWord"];
+}
+
+- (void)setRemoveMark:(BOOL)removeMark {
+    _removeMark = removeMark;
+    convertToolRemoveMark = removeMark;
+    [[NSUserDefaults standardUserDefaults] setInteger:removeMark ? 1 : 0 forKey:@"convertToolRemoveMark"];
+}
+
+- (void)setAlertWhenCompleted:(BOOL)alertWhenCompleted {
+    _alertWhenCompleted = alertWhenCompleted;
+    convertToolDontAlertWhenCompleted = !alertWhenCompleted;
+    [[NSUserDefaults standardUserDefaults] setBool:!alertWhenCompleted forKey:@"convertToolDontAlertWhenCompleted"];
+}
+
+- (NSArray<NSString *> *)availableHotKeyPresets {
+    return @[
+        @"⌃ Control + ⌥ Option + C",
+        @"⌥ Option + ⌘ Command + C",
+        @"⌃ Control + ⇧ Shift + C",
+        @"⌃ Control + ⌘ Command + C",
+        @"Không dùng phím tắt"
+    ];
+}
+
+- (NSInteger)hotKeyPreset {
+    unsigned int raw = (unsigned int)(convertToolHotKey & (~0x8000));
+    switch (raw) {
+        case 0x63000308: return 0; // Ctrl + Opt + C
+        case 0x63000608: return 1; // Opt + Cmd + C
+        case 0x63000908: return 2; // Ctrl + Shift + C
+        case 0x63000508: return 3; // Ctrl + Cmd + C
+        case 0xFE0000FE: return 4; // Disabled
+        default: return 0;
+    }
+}
+
+- (void)setHotKeyPreset:(NSInteger)preset {
+    unsigned int newHotKey = 0x63000308; // default Ctrl + Opt + C
+    switch (preset) {
+        case 0: newHotKey = 0x63000308; break; // Ctrl + Opt + C
+        case 1: newHotKey = 0x63000608; break; // Opt + Cmd + C
+        case 2: newHotKey = 0x63000908; break; // Ctrl + Shift + C
+        case 3: newHotKey = 0x63000508; break; // Ctrl + Cmd + C
+        case 4: newHotKey = 0xFE0000FE; break; // Disabled
+        default: newHotKey = 0x63000308; break;
+    }
+    convertToolHotKey = (int)newHotKey;
+    [[NSUserDefaults standardUserDefaults] setInteger:convertToolHotKey forKey:@"convertToolHotKey"];
+    [appDelegate setQuickConvertString];
+}
+
+- (BOOL)convertClipboard:(nullable NSWindow *)window {
+    if ([OpenKeyManager quickConvert]) {
+        if (self.alertWhenCompleted) {
+            [OpenKeyManager showMessage:window message:@"Chuyển mã thành công!" subMsg:@"Kết quả đã được lưu trong clipboard."];
+        }
+        return YES;
+    } else {
+        [OpenKeyManager showMessage:window message:@"Không có dữ liệu trong clipboard!" subMsg:@"Hãy sao chép một đoạn văn bản trước khi chuyển mã."];
+        return NO;
+    }
+}
 
 @end
 
@@ -22,169 +154,21 @@ extern AppDelegate* appDelegate;
 - (void)viewDidLoad {
     [super viewDidLoad];
 
-    self.SHotKey.Parent = self;
-    [self fillData];
-}
-
--(void)fillData {
-    NSArray* codeData = [OpenKeyManager getTableCodes];
-    [self.FromCode removeAllItems];
-    [self.FromCode addItemsWithTitles:codeData];
-    [self.ToCode removeAllItems];
-    [self.ToCode addItemsWithTitles:codeData];
-    
-    self.AlertWhenComplete.state = !convertToolDontAlertWhenCompleted ? NSControlStateValueOn : NSControlStateValueOff;
-    
-    self.ToAllCaps.state = convertToolToAllCaps ? NSControlStateValueOn : NSControlStateValueOff;
-    self.ToNonCaps.state = convertToolToAllNonCaps ? NSControlStateValueOn : NSControlStateValueOff;
-    self.ToCapsFirstLetter.state = convertToolToCapsFirstLetter ? NSControlStateValueOn : NSControlStateValueOff;
-    self.ToCapsCharEachWord.state = convertToolToCapsEachWord ? NSControlStateValueOn : NSControlStateValueOff;
-    
-    self.ToRemoveSign.state = convertToolRemoveMark ? NSControlStateValueOn : NSControlStateValueOff;
-    
-    [self.FromCode selectItemAtIndex:convertToolFromCode];
-    [self.ToCode selectItemAtIndex:convertToolToCode];
-    
-    self.SControl.state = (convertToolHotKey & 0x100) ? NSControlStateValueOn : NSControlStateValueOff;
-    self.SOption.state = (convertToolHotKey & 0x200) ? NSControlStateValueOn : NSControlStateValueOff;
-    self.SCommand.state = (convertToolHotKey & 0x400) ? NSControlStateValueOn : NSControlStateValueOff;
-    self.SShift.state = (convertToolHotKey & 0x800) ? NSControlStateValueOn : NSControlStateValueOff;
-    [self.SHotKey setTextByChar:((convertToolHotKey>>24) & 0xFF)];
-}
-
--(void)turnOffAllOption {
-    convertToolToAllCaps = false;
-    [[NSUserDefaults standardUserDefaults] setInteger:convertToolToAllCaps forKey:@"convertToolToAllCaps"];
-    convertToolToAllNonCaps = false;
-    [[NSUserDefaults standardUserDefaults] setInteger:convertToolToAllNonCaps forKey:@"convertToolToAllNonCaps"];
-    convertToolToCapsFirstLetter = false;
-    [[NSUserDefaults standardUserDefaults] setInteger:convertToolToCapsFirstLetter forKey:@"convertToolToCapsFirstLetter"];
-    convertToolToCapsEachWord = false;
-    [[NSUserDefaults standardUserDefaults] setInteger:convertToolToCapsEachWord forKey:@"convertToolToCapsEachWord"];
-}
-
-- (IBAction)onAlertWhenCompleted:(NSButton *)sender {
-    NSInteger val = [self setCustomValue:sender keyToSet:@"convertToolDontAlertWhenCompleted"];
-    convertToolDontAlertWhenCompleted = (int)!val;
-}
-
-- (IBAction)onToAllCaps:(NSButton *)sender {
-    [self turnOffAllOption];
-    NSInteger val = [self setCustomValue:sender keyToSet:@"convertToolToAllCaps"];
-    convertToolToAllCaps = (int)val;
-    [self fillData];
-}
-
-- (IBAction)onToNonCaps:(NSButton *)sender {
-    [self turnOffAllOption];
-    NSInteger val = [self setCustomValue:sender keyToSet:@"convertToolToAllNonCaps"];
-    convertToolToAllNonCaps = (int)val;
-    [self fillData];
-}
-
-- (IBAction)onToCapsFirstLetter:(NSButton *)sender {
-    [self turnOffAllOption];
-    NSInteger val = [self setCustomValue:sender keyToSet:@"convertToolToCapsFirstLetter"];
-    convertToolToCapsFirstLetter = (int)val;
-    [self fillData];
-}
-
-- (IBAction)onToCapsCharEachWord:(NSButton *)sender {
-    [self turnOffAllOption];
-    NSInteger val = [self setCustomValue:sender keyToSet:@"convertToolToCapsEachWord"];
-    convertToolToCapsEachWord = (int)val;
-    [self fillData];
-}
-
-- (IBAction)onToRemoveSign:(NSButton *)sender {
-    NSInteger val = [self setCustomValue:sender keyToSet:@"convertToolRemoveMark"];
-    convertToolRemoveMark = (int)val;
-}
-
-- (IBAction)onFromCodeSelected:(NSPopUpButton *)sender {
-    convertToolFromCode = [self.FromCode indexOfSelectedItem];
-    [[NSUserDefaults standardUserDefaults] setInteger:convertToolFromCode forKey:@"convertToolFromCode"];
-}
-
-- (IBAction)onToCodeSelected:(NSPopUpButton *)sender {
-    convertToolToCode = [self.ToCode indexOfSelectedItem];
-    [[NSUserDefaults standardUserDefaults] setInteger:convertToolToCode forKey:@"convertToolToCode"];
-}
-
-- (NSInteger)setCustomValue:(NSButton*)sender keyToSet:(NSString*) key {
-    NSInteger val = 0;
-    if (sender.state == NSControlStateValueOn) {
-        val = 1;
-    } else {
-        val = 0;
+    for (NSView *subview in [self.view.subviews copy]) {
+        [subview removeFromSuperview];
     }
-    if (key != nil)
-        [[NSUserDefaults standardUserDefaults] setInteger:val forKey:key];
-    return val;
+
+    NSViewController *modernConvertVC = [ModernConvertPanel createViewController];
+    [self addChildViewController:modernConvertVC];
+    modernConvertVC.view.frame = self.view.bounds;
+    modernConvertVC.view.autoresizingMask = NSViewWidthSizable | NSViewHeightSizable;
+    [self.view addSubview:modernConvertVC.view];
 }
 
-- (IBAction)onReverseCode:(id)sender {
-    NSInteger code = [self.ToCode indexOfSelectedItem];
-    [self.ToCode selectItemAtIndex:[self.FromCode indexOfSelectedItem]];
-    [self.FromCode selectItemAtIndex:code];
-    convertToolFromCode = [self.FromCode indexOfSelectedItem];
-    convertToolToCode = [self.ToCode indexOfSelectedItem];
+- (void)viewDidAppear {
+    [super viewDidAppear];
+    self.view.window.title = @"Công cụ chuyển mã";
+    [self.view.window setContentSize:NSMakeSize(580, 570)];
 }
-
-- (IBAction)onSControl:(NSButton *)sender {
-    NSInteger val = sender.state == NSControlStateValueOn ? 1 : 0;
-    convertToolHotKey &= (~0x100);
-    convertToolHotKey |= val << 8;
-    [[NSUserDefaults standardUserDefaults] setInteger:convertToolHotKey forKey:@"convertToolHotKey"];
-    [appDelegate setQuickConvertString];
-}
-
-- (IBAction)onSOption:(NSButton *)sender {
-    NSInteger val = sender.state == NSControlStateValueOn ? 1 : 0;
-    convertToolHotKey &= (~0x200);
-    convertToolHotKey |= val << 9;
-    [[NSUserDefaults standardUserDefaults] setInteger:convertToolHotKey forKey:@"convertToolHotKey"];
-    [appDelegate setQuickConvertString];
-}
-
-- (IBAction)onSCommand:(NSButton *)sender {
-    NSInteger val = sender.state == NSControlStateValueOn ? 1 : 0;
-    convertToolHotKey &= (~0x400);
-    convertToolHotKey |= val << 10;
-    [[NSUserDefaults standardUserDefaults] setInteger:convertToolHotKey forKey:@"convertToolHotKey"];
-    [appDelegate setQuickConvertString];
-}
-
-- (IBAction)onSShift:(NSButton *)sender {
-    NSInteger val = sender.state == NSControlStateValueOn ? 1 : 0;
-    convertToolHotKey &= (~0x800);
-    convertToolHotKey |= val << 11;
-    [[NSUserDefaults standardUserDefaults] setInteger:convertToolHotKey forKey:@"convertToolHotKey"];
-    [appDelegate setQuickConvertString];
-}
-
--(void)onMyTextFieldKeyChange:(unsigned short)keyCode character:(unsigned short)character {
-    convertToolHotKey &= 0xFFFFFF00;
-    convertToolHotKey |= keyCode;
-    convertToolHotKey &= 0x00FFFFFF;
-    convertToolHotKey |= ((unsigned int)character<<24);
-    [[NSUserDefaults standardUserDefaults] setInteger:convertToolHotKey forKey:@"convertToolHotKey"];
-    [appDelegate setQuickConvertString];
-}
-
-- (IBAction)onConvertButton:(id)sender {
-    if ([OpenKeyManager quickConvert]) {
-        if (!convertToolDontAlertWhenCompleted) {
-            [OpenKeyManager showMessage: self.view.window message:@"Chuyển mã thành công!" subMsg:@"Kết quả đã được lưu trong clipboard."];
-        }
-    } else {
-        [OpenKeyManager showMessage: self.view.window message:@"Không có dữ liệu trong clipboard!" subMsg:@"Hãy sao chép một đoạn text để chuyển đổi!"];
-    }
-}
-
-- (IBAction)onOKButton:(id)sender {
-    [self.view.window close];
-}
-
 
 @end

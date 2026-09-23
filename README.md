@@ -56,6 +56,10 @@
 
 <p align="center">
   <img src="docs/images/macro-manager.png" width="48%" alt="Thiết lập gõ tắt" />
+  <img src="docs/images/convert-tool.png" width="48%" alt="Công cụ chuyển mã" />
+</p>
+
+<p align="center">
   <img src="docs/images/settings-system.png" width="48%" alt="Cài đặt hệ thống & Loại trừ ứng dụng" />
 </p>
 ---

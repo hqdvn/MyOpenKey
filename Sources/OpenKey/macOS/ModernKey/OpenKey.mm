@@ -174,10 +174,17 @@ extern "C" {
 
     NSString* getTargetApp(CGEventRef event) {
         int64_t targetPID = CGEventGetIntegerValueField(event, kCGEventTargetUnixProcessID);
+        static int64_t _cachedPID = -1;
+        static NSString* _cachedApp = nil;
         if (targetPID > 0) {
+            if (targetPID == _cachedPID && _cachedApp != nil) {
+                return _cachedApp;
+            }
             NSRunningApplication *app = [NSRunningApplication runningApplicationWithProcessIdentifier:(pid_t)targetPID];
             if (app && app.bundleIdentifier) {
-                return app.bundleIdentifier;
+                _cachedPID = targetPID;
+                _cachedApp = app.bundleIdentifier;
+                return _cachedApp;
             }
         }
         return [[NSWorkspace sharedWorkspace] frontmostApplication].bundleIdentifier;

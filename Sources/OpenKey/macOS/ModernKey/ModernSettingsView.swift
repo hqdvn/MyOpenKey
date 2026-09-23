@@ -1258,3 +1258,206 @@ public struct ModernMacroView: View {
         return hosting
     }
 }
+
+// MARK: - Modern Convert Tool (Công cụ chuyển mã)
+
+class ConvertToolState: ObservableObject {
+    static let shared = ConvertToolState()
+    let bridge = ConvertToolBridge.shared()
+
+    @Published var fromCode: Int = 0
+    @Published var toCode: Int = 0
+    @Published var caseOption: Int = 0
+    @Published var removeMark: Bool = false
+    @Published var alertWhenCompleted: Bool = true
+    @Published var hotKeyPreset: Int = 0
+
+    var availableCodeTables: [String] { bridge.availableCodeTables }
+    var availableHotKeyPresets: [String] { bridge.availableHotKeyPresets }
+
+    init() {
+        reload()
+    }
+
+    func reload() {
+        fromCode = bridge.fromCode
+        toCode = bridge.toCode
+        caseOption = bridge.caseOption
+        removeMark = bridge.removeMark
+        alertWhenCompleted = bridge.alertWhenCompleted
+        hotKeyPreset = bridge.hotKeyPreset
+    }
+
+    func reverse() {
+        bridge.reverseCodes()
+        fromCode = bridge.fromCode
+        toCode = bridge.toCode
+    }
+
+    func convertClipboard() {
+        _ = bridge.convertClipboard(NSApp.keyWindow)
+    }
+}
+
+public struct ModernConvertToolView: View {
+    @StateObject private var state = ConvertToolState.shared
+
+    let caseOptions = [
+        "Không thay đổi",
+        "SANG CHỮ HOA",
+        "sang chữ thường",
+        "Viết hoa chữ cái đầu câu",
+        "Viết Hoa Mỗi Từ"
+    ]
+
+    public init() {}
+
+    public var body: some View {
+        VStack(spacing: 0) {
+            ScrollView(.vertical, showsIndicators: true) {
+                VStack(spacing: 16) {
+                    // Bảng mã chuyển đổi
+                    GroupedCard(title: "BẢNG MÃ CHUYỂN ĐỔI") {
+                        SettingRow("Bảng mã nguồn", subtitle: "Bảng mã của văn bản hiện tại trong clipboard") {
+                            Picker("", selection: Binding(
+                                get: { state.fromCode },
+                                set: { state.fromCode = $0; state.bridge.fromCode = $0 }
+                            )) {
+                                ForEach(0..<state.availableCodeTables.count, id: \.self) { idx in
+                                    Text(state.availableCodeTables[idx]).tag(idx)
+                                }
+                            }
+                            .pickerStyle(.menu)
+                            .frame(width: 175)
+                        }
+
+                        Divider().opacity(0.4)
+
+                        SettingRow("Đảo chiều chuyển mã", subtitle: "Hoán đổi nhanh giữa bảng mã nguồn và đích") {
+                            Button(action: { state.reverse() }) {
+                                HStack(spacing: 5) {
+                                    Image(systemName: "arrow.up.arrow.down")
+                                        .font(.system(size: 11))
+                                    Text("Đảo chiều")
+                                        .font(.system(size: 12))
+                                }
+                            }
+                            .controlSize(.regular)
+                        }
+
+                        Divider().opacity(0.4)
+
+                        SettingRow("Bảng mã đích", subtitle: "Bảng mã cần chuyển đổi sang (thường là Unicode)") {
+                            Picker("", selection: Binding(
+                                get: { state.toCode },
+                                set: { state.toCode = $0; state.bridge.toCode = $0 }
+                            )) {
+                                ForEach(0..<state.availableCodeTables.count, id: \.self) { idx in
+                                    Text(state.availableCodeTables[idx]).tag(idx)
+                                }
+                            }
+                            .pickerStyle(.menu)
+                            .frame(width: 175)
+                        }
+                    }
+
+                    // Tùy chọn định dạng chữ
+                    GroupedCard(title: "TÙY CHỌN ĐỊNH DẠNG CHỮ") {
+                        SettingRow("Chuyển đổi kiểu chữ", subtitle: "Thay đổi hoa / thường cho toàn bộ văn bản") {
+                            Picker("", selection: Binding(
+                                get: { state.caseOption },
+                                set: { state.caseOption = $0; state.bridge.caseOption = $0 }
+                            )) {
+                                ForEach(0..<caseOptions.count, id: \.self) { idx in
+                                    Text(caseOptions[idx]).tag(idx)
+                                }
+                            }
+                            .pickerStyle(.menu)
+                            .frame(width: 195)
+                        }
+
+                        Divider().opacity(0.4)
+
+                        SettingRow("Bỏ dấu tiếng Việt", subtitle: "Chuyển toàn bộ văn bản sang tiếng Việt không dấu") {
+                            Toggle("", isOn: Binding(
+                                get: { state.removeMark },
+                                set: { state.removeMark = $0; state.bridge.removeMark = $0 }
+                            ))
+                            .toggleStyle(.switch)
+                        }
+
+                        Divider().opacity(0.4)
+
+                        SettingRow("Thông báo sau khi hoàn tất", subtitle: "Hiển thị hộp thoại báo kết quả đã lưu vào clipboard") {
+                            Toggle("", isOn: Binding(
+                                get: { state.alertWhenCompleted },
+                                set: { state.alertWhenCompleted = $0; state.bridge.alertWhenCompleted = $0 }
+                            ))
+                            .toggleStyle(.switch)
+                        }
+                    }
+
+                    // Phím tắt chuyển nhanh
+                    GroupedCard(title: "PHÍM TẮT CHUYỂN MÃ NHANH") {
+                        SettingRow("Tổ hợp phím tắt", subtitle: "Chuyển mã clipboard ngay tức khắc mà không cần mở cửa sổ") {
+                            Picker("", selection: Binding(
+                                get: { state.hotKeyPreset },
+                                set: { state.hotKeyPreset = $0; state.bridge.hotKeyPreset = $0 }
+                            )) {
+                                ForEach(0..<state.availableHotKeyPresets.count, id: \.self) { idx in
+                                    Text(state.availableHotKeyPresets[idx]).tag(idx)
+                                }
+                            }
+                            .pickerStyle(.menu)
+                            .frame(width: 210)
+                        }
+                    }
+                }
+                .padding(.horizontal, 22)
+                .padding(.vertical, 16)
+            }
+
+            Divider().opacity(0.6)
+
+            // Bottom Bar
+            HStack {
+                Button(action: { state.convertClipboard() }) {
+                    HStack(spacing: 6) {
+                        Image(systemName: "arrow.triangle.2.circlepath")
+                            .font(.system(size: 12, weight: .bold))
+                        Text("Chuyển mã Clipboard ngay")
+                            .font(.system(size: 13, weight: .medium))
+                    }
+                }
+                .buttonStyle(.borderedProminent)
+                .controlSize(.regular)
+                .keyboardShortcut(.defaultAction)
+
+                Spacer()
+
+                Button("Đóng") {
+                    if let win = NSApp.windows.first(where: { $0.title.contains("chuyển mã") }) {
+                        win.close()
+                    } else {
+                        NSApp.keyWindow?.close()
+                    }
+                }
+                .controlSize(.regular)
+                .keyboardShortcut(.cancelAction)
+            }
+            .padding(.horizontal, 20)
+            .padding(.vertical, 12)
+            .background(Color(NSColor.windowBackgroundColor))
+        }
+        .frame(width: 580, height: 570)
+        .background(Color(NSColor.windowBackgroundColor))
+    }
+}
+
+@objc public class ModernConvertPanel: NSObject {
+    @objc public static func createViewController() -> NSViewController {
+        let hosting = NSHostingController(rootView: ModernConvertToolView())
+        hosting.view.frame = NSRect(x: 0, y: 0, width: 580, height: 570)
+        return hosting
+    }
+}

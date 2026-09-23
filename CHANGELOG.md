@@ -14,6 +14,10 @@ Dự án mã nguồn mở độc lập tại [github.com/hqdvn/MyOpenKey](https:
   - Hỗ trợ cả 2 chế độ hiển thị: Full Color Gradient và Đơn sắc hiện đại (`setTemplate:YES`).
 - **Thiết lập gõ tắt (Macro Manager) hiện đại:**
   - Xây dựng lại hoàn toàn bằng SwiftUI: tìm kiếm thời gian thực, nhập và chỉnh sửa nhanh ngay trên thanh công cụ, xóa từ gõ tắt với 1 click, nạp/xuất file tương thích hoàn toàn dữ liệu cũ.
+- **Công cụ chuyển mã (Convert Tool) hiện đại:**
+  - Tái thiết kế toàn diện bằng SwiftUI: đảo chiều bảng mã 1-click, tùy chọn đổi hoa/thường, bỏ dấu tiếng Việt, phím tắt chuyển mã nhanh, chuyển đổi clipboard tức thì.
+- **Tối ưu hóa hiệu năng & Bộ nhớ:**
+  - Lưu đệm định danh ứng dụng mục tiêu (`targetPID` cache) trong vòng lặp EventTap: giảm thiểu gọi IPC hệ thống xuống độ phức tạp $O(1)$ trên mỗi phím bấm, mang lại độ trễ gõ phím cực thấp.
 - **Ổn định tối đa & Chống đơ kẹt phím:**
   - Bộ giám sát Watchdog (500ms): tự động khôi phục kết nối bàn phím nếu macOS ngắt EventTap sau khi Sleep/Wake máy.
   - Cấp phát sự kiện Backspace động: khắc phục lỗi nghẽn hàng đợi phím trên Apple Mail và các ứng dụng WebKit.
