@@ -746,9 +746,25 @@ struct SystemTabView: View {
 
             GroupedCard(title: "ỨNG DỤNG LUÔN DÙNG ENGLISH") {
                 if state.excludedApps.isEmpty {
-                    SettingRow("Chưa có ứng dụng nào", subtitle: "MyOpenKey tự chuyển English khi mở các app này") {
-                        EmptyView()
+                    HStack(spacing: 12) {
+                        Image(systemName: "app.dashed")
+                            .font(.system(size: 20))
+                            .foregroundColor(.secondary.opacity(0.6))
+
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text("Chưa có ứng dụng loại trừ")
+                                .font(.system(size: 12, weight: .medium))
+                                .foregroundColor(.secondary)
+
+                            Text("Tự động chuyển sang English khi vào các ứng dụng được thêm")
+                                .font(.system(size: 11))
+                                .foregroundColor(.secondary.opacity(0.8))
+                        }
+
+                        Spacer()
                     }
+                    .padding(.horizontal, 14)
+                    .padding(.vertical, 12)
                 } else {
                     ForEach(Array(state.excludedApps.enumerated()), id: \.element) { index, bundleId in
                         SettingRow(state.excludedAppName(bundleId), subtitle: bundleId) {
