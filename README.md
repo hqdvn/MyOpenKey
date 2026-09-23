@@ -45,6 +45,12 @@
 ### 🔄 5. Khởi động cùng hệ thống (`SMAppService`)
 - Hỗ trợ đăng ký khởi động cùng hệ thống thông qua kiến trúc native `SMAppService` trên macOS 13 (Ventura) trở lên, xuất hiện minh bạch trong *System Settings ➔ General ➔ Login Items*. (Lưu ý: trên macOS 12 Monterey, tính năng khởi động cùng máy chưa khả dụng do hệ thống yêu cầu `SMAppService` native).
 
+### 🔀 6. Công cụ chuyển mã & Gõ tắt hiện đại
+- **Công cụ chuyển mã (Convert Tool)**: Xây dựng hoàn toàn bằng SwiftUI với Inset-Grouped cards, hỗ trợ đảo chiều bảng mã 1-click, tùy chọn đổi hoa/thường, bỏ dấu tiếng Việt, gán phím tắt chuyển mã clipboard tức thì.
+- **Thiết lập gõ tắt (Macro Manager)**: Tìm kiếm thời gian thực, thêm/sửa từ gõ tắt nhanh, nạp và xuất file định nghĩa linh hoạt.
+
+### 🚀 7. Tự động cập nhật 1-click (Sparkle 2)
+- Tích hợp framework Sparkle 2 (Ed25519) an toàn, tự động kiểm tra bản mới khi khởi động và hỗ trợ cập nhật 1-click trực tiếp ngay trong ứng dụng với giao diện tiếng Việt bản địa hóa hoàn chỉnh.
 ---
 
 ## 📸 Giao diện ứng dụng
