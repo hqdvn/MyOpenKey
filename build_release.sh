@@ -77,15 +77,17 @@ fi
 
 GEN_ARGS=(--download-url-prefix "https://github.com/hqdvn/MyOpenKey/releases/download/v$VERSION/")
 if [ -n "$SPARKLE_PRIVATE_KEY" ]; then
-    echo "$SPARKLE_PRIVATE_KEY" | ./Tools/sparkle/generate_appcast --ed-key-file - "${GEN_ARGS[@]}" "$APPCAST_STAGING/"
+    echo "$SPARKLE_PRIVATE_KEY" | ./Tools/sparkle/generate_appcast --ed-key-file - "${GEN_ARGS[@]}" "$APPCAST_STAGING/" || true
 elif [ -f "/tmp/sparkle_private_key.txt" ]; then
-    ./Tools/sparkle/generate_appcast --ed-key-file /tmp/sparkle_private_key.txt "${GEN_ARGS[@]}" "$APPCAST_STAGING/"
+    ./Tools/sparkle/generate_appcast --ed-key-file /tmp/sparkle_private_key.txt "${GEN_ARGS[@]}" "$APPCAST_STAGING/" || true
 else
-    ./Tools/sparkle/generate_appcast "${GEN_ARGS[@]}" "$APPCAST_STAGING/"
+    ./Tools/sparkle/generate_appcast "${GEN_ARGS[@]}" "$APPCAST_STAGING/" || true
 fi
 
-cp "$APPCAST_STAGING/appcast.xml" "dist/appcast.xml"
-cp "$APPCAST_STAGING/appcast.xml" "$ROOT_DIR/appcast.xml"
+if [ -f "$APPCAST_STAGING/appcast.xml" ]; then
+    cp "$APPCAST_STAGING/appcast.xml" "dist/appcast.xml"
+    cp "$APPCAST_STAGING/appcast.xml" "$ROOT_DIR/appcast.xml"
+fi
 rm -rf "$APPCAST_STAGING"
 
 # 4. Tạo mã băm SHA-256
