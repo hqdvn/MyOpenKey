@@ -436,11 +436,11 @@ NSString * const kOpenKeySettingsDidChangeNotification = @"OpenKeySettingsDidCha
 }
 
 - (NSString *)appVersion {
-    return [[NSBundle mainBundle] objectForInfoDictionaryKey:@"CFBundleShortVersionString"] ?: @"0.1.01";
+    return [[NSBundle mainBundle] objectForInfoDictionaryKey:@"CFBundleShortVersionString"] ?: @"0.1.02";
 }
 
 - (NSString *)appBuild {
-    return [[NSBundle mainBundle] objectForInfoDictionaryKey:@"CFBundleVersion"] ?: @"2";
+    return [[NSBundle mainBundle] objectForInfoDictionaryKey:@"CFBundleVersion"] ?: @"3";
 }
 
 - (NSString *)buildDate {

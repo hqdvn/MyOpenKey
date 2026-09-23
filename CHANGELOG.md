@@ -1,5 +1,16 @@
 # MyOpenKey Changelog
 
+##### MyOpenKey 0.1.02 (macOS) (Build 3) — 24/09/2026
+Phát triển bởi **Huỳnh Quốc Đạt** ([hqd.vn](https://hqd.vn) · [work@hqd.vn](mailto:work@hqd.vn))  
+Dự án mã nguồn mở độc lập tại [github.com/hqdvn/MyOpenKey](https://github.com/hqdvn/MyOpenKey).
+
+- **Bản địa hóa tiếng Việt cho Sparkle Auto-Update:**
+  - Hỗ trợ đầy đủ ngôn ngữ tiếng Việt (vi) cho toàn bộ chuỗi thông báo, hộp thoại kiểm tra và tiến trình cập nhật tự động của Sparkle 2.
+- **Tinh chỉnh giao diện & Bảng điều khiển:**
+  - Thiết kế lại trạng thái rỗng cho danh sách loại trừ ứng dụng (App Exclusion) với biểu tượng nét đứt hiện đại, tinh tế.
+  - Đồng bộ chuẩn hóa thuật ngữ "Kiểm tra cập nhật" trên toàn bộ menu bar, storyboard và bảng cài đặt hệ thống.
+  - Chụp mới toàn bộ ảnh giao diện thực tế và cập nhật tài liệu hướng dẫn `README.md`.
+
 ##### MyOpenKey 0.1.01 (macOS) (Build 2) — 24/09/2026
 Phát triển bởi **Huỳnh Quốc Đạt** ([hqd.vn](https://hqd.vn) · [work@hqd.vn](mailto:work@hqd.vn))  
 Dự án mã nguồn mở độc lập tại [github.com/hqdvn/MyOpenKey](https://github.com/hqdvn/MyOpenKey).

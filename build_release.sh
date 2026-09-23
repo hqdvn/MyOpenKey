@@ -43,7 +43,7 @@ if [ ! -d "$APP_PATH" ]; then
 fi
 
 # Lấy phiên bản từ Info.plist
-VERSION=$(/usr/libexec/PlistBuddy -c "Print :CFBundleShortVersionString" "$APP_PATH/Contents/Info.plist" 2>/dev/null || echo "0.1.01")
+VERSION=$(/usr/libexec/PlistBuddy -c "Print :CFBundleShortVersionString" "$APP_PATH/Contents/Info.plist" 2>/dev/null || echo "0.1.02")
 echo "==> 📦 Phiên bản: $VERSION"
 
 DMG_NAME="MyOpenKey-$VERSION.dmg"
