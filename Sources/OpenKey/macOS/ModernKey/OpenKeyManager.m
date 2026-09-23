@@ -160,7 +160,8 @@ static dispatch_source_t  tapWatchdog;
 #pragma mark -AutoUpdate feature
 
 +(void)checkNewVersion:(NSWindow*)parent callbackFunc:(CheckNewVersionCallback) callback {
-    NSURLRequest *request = [NSURLRequest requestWithURL:[NSURL URLWithString:@"https://raw.githubusercontent.com/hqdvn/MyOpenKey/master/version.json"]
+    NSString *urlString = [NSString stringWithFormat:@"https://raw.githubusercontent.com/hqdvn/MyOpenKey/master/version.json?t=%ld", (long)[[NSDate date] timeIntervalSince1970]];
+    NSURLRequest *request = [NSURLRequest requestWithURL:[NSURL URLWithString:urlString]
                                              cachePolicy:NSURLRequestReloadIgnoringLocalCacheData
                                          timeoutInterval:15];
     [[[NSURLSession sharedSession] dataTaskWithRequest:request completionHandler:^(NSData *data, NSURLResponse *response, NSError *error) {
@@ -201,8 +202,9 @@ static dispatch_source_t  tapWatchdog;
         [alert addButtonWithTitle:@"Không"];
     }
     if (parent == nil) {
+        [NSApp activateIgnoringOtherApps:YES];
         [alert.window makeKeyAndOrderFront:nil];
-        [alert.window setLevel:NSStatusWindowLevel];
+        [alert.window setLevel:NSFloatingWindowLevel];
         NSModalResponse res = [alert runModal];
         if (res == 1000 && needUpdating) {
             [self openReleasesPage];
