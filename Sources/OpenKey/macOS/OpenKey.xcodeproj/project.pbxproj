@@ -30,7 +30,6 @@
 		234F70AE21FB50BD00D2F2CA /* StatusHighlightedEng@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = 234F70AA21FB50BC00D2F2CA /* StatusHighlightedEng@2x.png */; };
 		234F70AF21FB50BD00D2F2CA /* StatusEng.png in Resources */ = {isa = PBXBuildFile; fileRef = 234F70AB21FB50BD00D2F2CA /* StatusEng.png */; };
 		2371AAEF22FA85B200CA1B57 /* OpenKey.mm in Sources */ = {isa = PBXBuildFile; fileRef = 2371AAEE22FA85B200CA1B57 /* OpenKey.mm */; };
-		2374A1302216720E005B0375 /* AboutViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 2374A12F2216720E005B0375 /* AboutViewController.m */; };
 		2383405D2320F8170020F857 /* StartConvert@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = 2383405B2320F8170020F857 /* StartConvert@2x.png */; };
 		238519F821F1BF3C00E79A41 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 238519F221F1B8E200E79A41 /* Foundation.framework */; };
 		238519FF21F1BF8A00E79A41 /* EventKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 238519FD21F1BF5100E79A41 /* EventKit.framework */; };
@@ -110,8 +109,6 @@
 		234F70AA21FB50BC00D2F2CA /* StatusHighlightedEng@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "StatusHighlightedEng@2x.png"; sourceTree = "<group>"; };
 		234F70AB21FB50BD00D2F2CA /* StatusEng.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = StatusEng.png; sourceTree = "<group>"; };
 		2371AAEE22FA85B200CA1B57 /* OpenKey.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = OpenKey.mm; sourceTree = "<group>"; };
-		2374A12E2216720E005B0375 /* AboutViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = AboutViewController.h; sourceTree = "<group>"; };
-		2374A12F2216720E005B0375 /* AboutViewController.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = AboutViewController.m; sourceTree = "<group>"; };
 		237559B42204156000FB8CB9 /* AppDelegate.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = AppDelegate.h; sourceTree = "<group>"; };
 		237559B52204156000FB8CB9 /* AppDelegate.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = AppDelegate.m; sourceTree = "<group>"; };
 		237559B72204156000FB8CB9 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
@@ -232,8 +229,6 @@
 				23FF00062800000000000006 /* ModernKey-Bridging-Header.h */,
 				23FF00022800000000000002 /* ModernSettingsView.swift */,
 				23FF00302800000000000030 /* SparkleUpdater.swift */,
-				2374A12E2216720E005B0375 /* AboutViewController.h */,
-				2374A12F2216720E005B0375 /* AboutViewController.m */,
 				232EDA5D21F1B33F0085D362 /* Assets.xcassets */,
 				232EDA5F21F1B33F0085D362 /* Main.storyboard */,
 				232EDA6221F1B33F0085D362 /* Info.plist */,
@@ -439,7 +434,6 @@
 				23F512852336386200397988 /* MJAccessibilityUtils.m in Sources */,
 				2389467D21FDDB920030A13B /* OpenKeyManager.m in Sources */,
 				23E2E4A02314FD3A006CCC3E /* Vietnamese.cpp in Sources */,
-				2374A1302216720E005B0375 /* AboutViewController.m in Sources */,
 				23CA6D1722F0439100804D6E /* MyTextField.m in Sources */,
 				232EDA6421F1B33F0085D362 /* main.m in Sources */,
 				2345899A22F720D7003E0923 /* MacroViewController.mm in Sources */,
@@ -601,7 +595,7 @@
 				CODE_SIGN_IDENTITY = "Mac Developer";
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 1;
+				CURRENT_PROJECT_VERSION = 2;
 				DEVELOPMENT_TEAM = 8S7348QV8Q;
 				HEADER_SEARCH_PATHS = "";
 				FRAMEWORK_SEARCH_PATHS = (
@@ -614,7 +608,7 @@
 					"@executable_path/../Frameworks",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 12.0;
-				MARKETING_VERSION = 0.1.00;
+				MARKETING_VERSION = 0.1.01;
 				OTHER_LDFLAGS = (
 					"-lc++\n-lc++",
 				);
@@ -633,7 +627,7 @@
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 1;
+				CURRENT_PROJECT_VERSION = 2;
 				DEVELOPMENT_TEAM = 8S7348QV8Q;
 				HEADER_SEARCH_PATHS = "";
 				FRAMEWORK_SEARCH_PATHS = (
@@ -646,7 +640,7 @@
 					"@executable_path/../Frameworks",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 12.0;
-				MARKETING_VERSION = 0.1.00;
+				MARKETING_VERSION = 0.1.01;
 				OTHER_LDFLAGS = (
 					"-lc++\n-lc++",
 				);

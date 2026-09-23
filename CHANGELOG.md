@@ -1,5 +1,18 @@
 # MyOpenKey Changelog
 
+##### MyOpenKey 0.1.01 (macOS) (Build 2) — 24/09/2026
+Phát triển bởi **Huỳnh Quốc Đạt** ([hqd.vn](https://hqd.vn) · [work@hqd.vn](mailto:work@hqd.vn))  
+Dự án mã nguồn mở độc lập tại [github.com/hqdvn/MyOpenKey](https://github.com/hqdvn/MyOpenKey).
+
+- **Tự động cập nhật 1-click với Sparkle 2:**
+  - Tích hợp framework Sparkle 2 (Ed25519) tự động kiểm tra, tải ngầm và cài đặt bản mới trực tiếp trong ứng dụng mà không cần tải thủ công từ trình duyệt.
+- **Hiện đại hóa toàn diện Công cụ chuyển mã (Convert Tool):**
+  - Chuyển đổi hoàn toàn sang giao diện SwiftUI Inset-Grouped cards: đảo chiều bảng mã 1-click, tùy chọn đổi hoa/thường, bỏ dấu tiếng Việt, phím tắt chuyển mã nhanh, chuyển đổi clipboard tức thì.
+- **Tối ưu hóa hiệu năng & Độ trễ gõ phím:**
+  - Thêm bộ nhớ đệm `targetPID` trong vòng lặp EventTap: giảm thiểu lệnh gọi IPC hệ thống xuống $O(1)$ cho mỗi phím bấm, mang lại độ trễ gõ phím cực thấp.
+- **Tinh gọn giao diện:**
+  - Loại bỏ menu và cửa sổ Giới thiệu pop-up cũ, gom toàn bộ thông tin bản quyền và liên hệ vào tab *Thông tin* trong Bảng điều khiển.
+
 ##### MyOpenKey 0.1.00 (macOS) (Build 1) — 23/09/2026
 Phát triển bởi **Huỳnh Quốc Đạt** ([hqd.vn](https://hqd.vn) · [work@hqd.vn](mailto:work@hqd.vn))  
 Dự án mã nguồn mở độc lập tại [github.com/hqdvn/MyOpenKey](https://github.com/hqdvn/MyOpenKey).

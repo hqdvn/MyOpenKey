@@ -70,7 +70,6 @@ extern bool convertToolDontAlertWhenCompleted;
     NSWindowController *_mainWC;
     NSWindowController *_macroWC;
     NSWindowController *_convertWC;
-    NSWindowController *_aboutWC;
     
     NSStatusItem *statusItem;
     NSMenu *theMenu;
@@ -233,7 +232,6 @@ extern bool convertToolDontAlertWhenCompleted;
     
     [theMenu addItemWithTitle:@"Bảng điều khiển..." action:@selector(onControlPanelSelected) keyEquivalent:@""];
     [theMenu addItemWithTitle:@"Gõ tắt..." action:@selector(onMacroSelected) keyEquivalent:@""];
-    [theMenu addItemWithTitle:@"Giới thiệu" action:@selector(onAboutSelected) keyEquivalent:@""];
     [theMenu addItem:[NSMenuItem separatorItem]];
     
     [theMenu addItemWithTitle:@"Thoát" action:@selector(terminate:) keyEquivalent:@"q"];
@@ -539,18 +537,6 @@ extern bool convertToolDontAlertWhenCompleted;
     [_macroWC.window orderFrontRegardless];
 }
 
--(void) onAboutSelected {
-    if (_aboutWC == nil) {
-        _aboutWC = [[NSStoryboard storyboardWithName:@"Main" bundle:nil] instantiateControllerWithIdentifier:@"AboutWindow"];
-        _aboutWC.window.collectionBehavior = NSWindowCollectionBehaviorMoveToActiveSpace | NSWindowCollectionBehaviorParticipatesInCycle;
-    }
-    if ([_aboutWC.window isMiniaturized]) {
-        [_aboutWC.window deminiaturize:nil];
-    }
-    [NSApp activateIgnoringOtherApps:YES];
-    [_aboutWC.window makeKeyAndOrderFront:nil];
-    [_aboutWC.window orderFrontRegardless];
-}
 
 #pragma mark -Short key event
 -(void)onSwitchLanguage {
