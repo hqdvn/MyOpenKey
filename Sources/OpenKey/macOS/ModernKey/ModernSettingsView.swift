@@ -792,18 +792,19 @@ struct SystemTabView: View {
             }
 
             GroupedCard(title: "CẬP NHẬT") {
-                SettingRow("Kiểm tra bản mới lúc khởi động", subtitle: "Tự động thông báo khi có phiên bản MyOpenKey mới hơn") {
+                SettingRow("Tự động kiểm tra cập nhật", subtitle: "Tự động thông báo khi có phiên bản MyOpenKey mới hơn") {
                     Toggle("", isOn: Binding(
                         get: { state.checkNewVersionOnStartup },
                         set: { state.checkNewVersionOnStartup = $0; state.save(\.checkNewVersionOnStartup, value: $0) }
                     ))
                     .toggleStyle(.switch)
+                    .accessibilityLabel("Tự động kiểm tra cập nhật")
                 }
 
                 Divider().opacity(0.4)
 
-                SettingRow("Kiểm tra cập nhật (Sparkle)", subtitle: "Tự động tải ngầm và cài đặt phiên bản mới nhất") {
-                    Button("Kiểm tra bản mới...") {
+                SettingRow("Kiểm tra cập nhật", subtitle: "Tự động tải ngầm và cài đặt phiên bản mới nhất") {
+                    Button("Kiểm tra cập nhật...") {
                         SparkleUpdater.shared.checkForUpdates()
                     }
                     .controlSize(.regular)

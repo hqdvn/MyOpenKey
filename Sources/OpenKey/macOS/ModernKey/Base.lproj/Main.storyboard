@@ -1554,7 +1554,7 @@ DQ
                                         </textField>
                                         <textField focusRingType="none" horizontalHuggingPriority="249" verticalHuggingPriority="750" toolTip="Tự động kiểm tra phiên bản mới nhất mỗi khi khởi chạy OpenKey" translatesAutoresizingMaskIntoConstraints="NO" id="okU-176-lay">
                                             <rect key="frame" x="16" y="0.0" width="400" height="16"/>
-                                            <textFieldCell key="cell" lineBreakMode="truncatingTail" title="Kiểm tra bản mới lúc khởi động" id="Yxn-RW-l3x">
+                                            <textFieldCell key="cell" lineBreakMode="truncatingTail" title="Tự động kiểm tra cập nhật" id="Yxn-RW-l3x">
                                                 <font key="font" metaFont="system"/>
                                                 <color key="textColor" name="labelColor" catalog="System" colorSpace="catalog"/>
                                                 <color key="backgroundColor" name="textBackgroundColor" catalog="System" colorSpace="catalog"/>
@@ -1562,14 +1562,14 @@ DQ
                                         </textField>
                                         <switch horizontalHuggingPriority="750" verticalHuggingPriority="750" toolTip="Tự động kiểm tra phiên bản mới nhất mỗi khi khởi chạy OpenKey&quot; baseWritingDirection=&quot;leftToRight&quot; alignment=&quot;left" translatesAutoresizingMaskIntoConstraints="NO" id="oZr-h6-YZJ">
                                             <rect key="frame" x="460" y="0.0" width="42" height="25"/>
-                                            <accessibility description="Kiểm tra bản mới lúc khởi động"/>
+                                            <accessibility description="Tự động kiểm tra cập nhật"/>
                                             <connections>
                                                 <action selector="onCheckNewVersionOnStartup:" target="XfG-lQ-9wD" id="o68-VP-UjG"/>
                                             </connections>
                                         </switch>
                                         <button toolTip="Bấm vào đây để kiểm tra phiên bản mới của OpenKey" verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="ZuJ-Ke-7Qg">
                                             <rect key="frame" x="279" y="47" width="154" height="32"/>
-                                            <buttonCell key="cell" type="push" title="Kiểm tra bản mới..." bezelStyle="rounded" alignment="center" borderStyle="border" imageScaling="proportionallyDown" inset="2" id="GQD-eQ-FpN">
+                                            <buttonCell key="cell" type="push" title="Kiểm tra cập nhật..." bezelStyle="rounded" alignment="center" borderStyle="border" imageScaling="proportionallyDown" inset="2" id="GQD-eQ-FpN">
                                                 <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
                                                 <font key="font" metaFont="system"/>
                                             </buttonCell>

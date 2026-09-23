@@ -380,7 +380,7 @@ extern int vPerformLayoutCompat;
     
     [OpenKeyManager checkNewVersion:self.view.window callbackFunc:^{
         self.CheckNewVersionButton.enabled = true;
-        self.CheckNewVersionButton.title = @"Kiểm tra bản mới...";
+        self.CheckNewVersionButton.title = @"Kiểm tra cập nhật...";
     }];
 }
 

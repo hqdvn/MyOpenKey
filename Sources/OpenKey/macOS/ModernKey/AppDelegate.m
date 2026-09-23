@@ -17,6 +17,7 @@
 #import "ViewController.h"
 #import "OpenKeyManager.h"
 #import "MJAccessibilityUtils.h"
+#import "MyOpenKey-Swift.h"
 
 AppDelegate* appDelegate;
 extern ViewController* viewController;
@@ -232,6 +233,7 @@ extern bool convertToolDontAlertWhenCompleted;
     
     [theMenu addItemWithTitle:@"Bảng điều khiển..." action:@selector(onControlPanelSelected) keyEquivalent:@""];
     [theMenu addItemWithTitle:@"Gõ tắt..." action:@selector(onMacroSelected) keyEquivalent:@""];
+    [theMenu addItemWithTitle:@"Kiểm tra cập nhật..." action:@selector(onCheckForUpdates) keyEquivalent:@""];
     [theMenu addItem:[NSMenuItem separatorItem]];
     
     [theMenu addItemWithTitle:@"Thoát" action:@selector(terminate:) keyEquivalent:@"q"];
@@ -535,6 +537,9 @@ extern bool convertToolDontAlertWhenCompleted;
     [NSApp activateIgnoringOtherApps:YES];
     [_macroWC.window makeKeyAndOrderFront:nil];
     [_macroWC.window orderFrontRegardless];
+}
+-(void)onCheckForUpdates {
+    [[SparkleUpdater shared] checkForUpdates];
 }
 
 
