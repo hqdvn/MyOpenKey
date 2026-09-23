@@ -10,5 +10,8 @@
 #import "ViewController.h"
 
 int main(int argc, const char * argv[]) {
+    @autoreleasepool {
+        [[NSUserDefaults standardUserDefaults] setObject:@[@"vi"] forKey:@"AppleLanguages"];
+    }
     return NSApplicationMain(argc, argv);
 }

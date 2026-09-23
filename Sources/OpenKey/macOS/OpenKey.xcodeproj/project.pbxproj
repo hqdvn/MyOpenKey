@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		23FF00422800000000000042 /* Localizable.strings in Resources */ = {isa = PBXBuildFile; fileRef = 23FF00402800000000000040 /* Localizable.strings */; };
 		23FF00312800000000000031 /* SparkleUpdater.swift in Sources */ = {isa = PBXBuildFile; fileRef = 23FF00302800000000000030 /* SparkleUpdater.swift */; };
 		23FF00212800000000000021 /* Sparkle.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 23FF00202800000000000020 /* Sparkle.framework */; };
 		23FF00222800000000000022 /* Sparkle.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 23FF00202800000000000020 /* Sparkle.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
@@ -74,6 +75,7 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		23FF00412800000000000041 /* vi */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = vi; path = "Resources/vi.lproj/Localizable.strings"; sourceTree = "<group>"; };
 		23FF00302800000000000030 /* SparkleUpdater.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SparkleUpdater.swift; sourceTree = "<group>"; };
 		23FF00202800000000000020 /* Sparkle.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Sparkle.framework; path = Frameworks/Sparkle.framework; sourceTree = "<group>"; };
 		23FF00042800000000000004 /* OpenKeyBridge.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = OpenKeyBridge.m; sourceTree = "<group>"; };
@@ -106,6 +108,7 @@
 		2345899922F720D7003E0923 /* MacroViewController.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = MacroViewController.mm; sourceTree = "<group>"; };
 		234F70A821FB50BC00D2F2CA /* StatusHighlightedEng.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = StatusHighlightedEng.png; sourceTree = "<group>"; };
 		234F70A921FB50BC00D2F2CA /* StatusEng@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "StatusEng@2x.png"; sourceTree = "<group>"; };
+		23FF00412800000000000041 /* vi */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = vi; path = "vi.lproj/Localizable.strings"; sourceTree = "<group>"; };
 		234F70AA21FB50BC00D2F2CA /* StatusHighlightedEng@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "StatusHighlightedEng@2x.png"; sourceTree = "<group>"; };
 		234F70AB21FB50BD00D2F2CA /* StatusEng.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = StatusEng.png; sourceTree = "<group>"; };
 		2371AAEE22FA85B200CA1B57 /* OpenKey.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = OpenKey.mm; sourceTree = "<group>"; };
@@ -177,6 +180,7 @@
 			children = (
 				2383405B2320F8170020F857 /* StartConvert@2x.png */,
 				238AF97022042EC600AEFA17 /* Icon.icns */,
+				23FF00402800000000000040 /* Localizable.strings */,
 				238AF96822042E2500AEFA17 /* ThumbUp@2x.png */,
 				238AF96622042D4900AEFA17 /* ExitButton@2x.png */,
 				238AF96422042C1600AEFA17 /* OK@2x.png */,
@@ -379,9 +383,10 @@
 			};
 			buildConfigurationList = 232EDA4F21F1B33E0085D362 /* Build configuration list for PBXProject "OpenKey" */;
 			compatibilityVersion = "Xcode 9.3";
-			developmentRegion = en;
+			developmentRegion = vi;
 			hasScannedForEncodings = 0;
 			knownRegions = (
+				vi,
 				en,
 				Base,
 			);
@@ -404,6 +409,7 @@
 				234F70AC21FB50BD00D2F2CA /* StatusHighlightedEng.png in Resources */,
 				232DB1E721FAED290049A0B5 /* StatusHighlighted@2x.png in Resources */,
 				238AF97122042EC600AEFA17 /* Icon.icns in Resources */,
+				23FF00422800000000000042 /* Localizable.strings in Resources */,
 				234F70AE21FB50BD00D2F2CA /* StatusHighlightedEng@2x.png in Resources */,
 				232DB1E421FAED290049A0B5 /* StatusHighlighted.png in Resources */,
 				238AF96522042C1600AEFA17 /* OK@2x.png in Resources */,
@@ -420,6 +426,16 @@
 		};
 /* End PBXResourcesBuildPhase section */
 
+/* Begin PBXVariantGroup section */
+		23FF00402800000000000040 /* Localizable.strings */ = {
+			isa = PBXVariantGroup;
+			children = (
+				23FF00412800000000000041 /* vi */,
+			);
+			name = Localizable.strings;
+			sourceTree = "<group>";
+		};
+/* End PBXVariantGroup section */
 /* Begin PBXSourcesBuildPhase section */
 		232EDA5021F1B33E0085D362 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
