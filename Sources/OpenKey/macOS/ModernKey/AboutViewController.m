@@ -9,6 +9,7 @@
 
 #import "AboutViewController.h"
 #import "OpenKeyManager.h"
+#import "MyOpenKey-Swift.h"
 
 @interface AboutViewController ()
 
@@ -47,14 +48,7 @@
 }
 
 - (IBAction)onCheckNewVersion:(id)sender {
-    
-    self.CheckNewVersionButton.title = @"Đang kiểm tra...";
-    self.CheckNewVersionButton.enabled = false;
-    
-    [OpenKeyManager checkNewVersion: self.view.window callbackFunc:^{
-        self.CheckNewVersionButton.enabled = true;
-        self.CheckNewVersionButton.title = @"Kiểm tra bản mới...";
-    }];
+    [[SparkleUpdater shared] checkForUpdates];
 }
 
 @end

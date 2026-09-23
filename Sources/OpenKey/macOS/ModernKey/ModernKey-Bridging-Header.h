@@ -6,3 +6,4 @@
 #import "OpenKeyBridge.h"
 #import "MacroViewController.h"
 #import "ConvertToolViewController.h"
+#import <Sparkle/Sparkle.h>

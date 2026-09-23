@@ -786,14 +786,10 @@ struct SystemTabView: View {
 
                 Divider().opacity(0.4)
 
-                SettingRow("Kiểm tra cập nhật thủ công", subtitle: "Tìm kiếm bản phát hành mới nhất từ kho mã nguồn") {
-                    Button(isCheckingUpdate ? "Đang kiểm tra..." : "Kiểm tra bản mới...") {
-                        isCheckingUpdate = true
-                        state.bridge.checkNewVersion(NSApp.keyWindow) {
-                            isCheckingUpdate = false
-                        }
+                SettingRow("Kiểm tra cập nhật (Sparkle)", subtitle: "Tự động tải ngầm và cài đặt phiên bản mới nhất") {
+                    Button("Kiểm tra bản mới...") {
+                        SparkleUpdater.shared.checkForUpdates()
                     }
-                    .disabled(isCheckingUpdate)
                     .controlSize(.regular)
                 }
             }

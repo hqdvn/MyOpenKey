@@ -7,6 +7,9 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		23FF00312800000000000031 /* SparkleUpdater.swift in Sources */ = {isa = PBXBuildFile; fileRef = 23FF00302800000000000030 /* SparkleUpdater.swift */; };
+		23FF00212800000000000021 /* Sparkle.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 23FF00202800000000000020 /* Sparkle.framework */; };
+		23FF00222800000000000022 /* Sparkle.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 23FF00202800000000000020 /* Sparkle.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		23FF00032800000000000003 /* OpenKeyBridge.m in Sources */ = {isa = PBXBuildFile; fileRef = 23FF00042800000000000004 /* OpenKeyBridge.m */; };
 		23FF00012800000000000001 /* ModernSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 23FF00022800000000000002 /* ModernSettingsView.swift */; };
 		23136D92231FBD49000764E6 /* ConvertToolViewController.mm in Sources */ = {isa = PBXBuildFile; fileRef = 23136D91231FBD49000764E6 /* ConvertToolViewController.mm */; };
@@ -49,6 +52,17 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
+		23FF00232800000000000023 /* Embed Frameworks */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 10;
+			files = (
+				23FF00222800000000000022 /* Sparkle.framework in Embed Frameworks */,
+			);
+			name = "Embed Frameworks";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		237559C4220417DD00FB8CB9 /* CopyFiles */ = {
 			isa = PBXCopyFilesBuildPhase;
 			buildActionMask = 2147483647;
@@ -61,6 +75,8 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		23FF00302800000000000030 /* SparkleUpdater.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SparkleUpdater.swift; sourceTree = "<group>"; };
+		23FF00202800000000000020 /* Sparkle.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Sparkle.framework; path = Frameworks/Sparkle.framework; sourceTree = "<group>"; };
 		23FF00042800000000000004 /* OpenKeyBridge.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = OpenKeyBridge.m; sourceTree = "<group>"; };
 		23FF00052800000000000005 /* OpenKeyBridge.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = OpenKeyBridge.h; sourceTree = "<group>"; };
 		23FF00062800000000000006 /* ModernKey-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "ModernKey-Bridging-Header.h"; sourceTree = "<group>"; };
@@ -152,6 +168,7 @@
 				23851A0021F1BFA300E79A41 /* Cocoa.framework in Frameworks */,
 				238519FF21F1BF8A00E79A41 /* EventKit.framework in Frameworks */,
 				238519F821F1BF3C00E79A41 /* Foundation.framework in Frameworks */,
+				23FF00212800000000000021 /* Sparkle.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -214,6 +231,7 @@
 				23FF00052800000000000005 /* OpenKeyBridge.h */,
 				23FF00062800000000000006 /* ModernKey-Bridging-Header.h */,
 				23FF00022800000000000002 /* ModernSettingsView.swift */,
+				23FF00302800000000000030 /* SparkleUpdater.swift */,
 				2374A12E2216720E005B0375 /* AboutViewController.h */,
 				2374A12F2216720E005B0375 /* AboutViewController.m */,
 				232EDA5D21F1B33F0085D362 /* Assets.xcassets */,
@@ -283,6 +301,7 @@
 				238519FB21F1BF4900E79A41 /* Cocoa.framework */,
 				238519F921F1BF4400E79A41 /* CoreGraphics.framework */,
 				238519F221F1B8E200E79A41 /* Foundation.framework */,
+				23FF00202800000000000020 /* Sparkle.framework */,
 			);
 			name = Frameworks;
 			sourceTree = "<group>";
@@ -333,6 +352,7 @@
 				232EDA5121F1B33E0085D362 /* Frameworks */,
 				232EDA5221F1B33E0085D362 /* Resources */,
 				237559C4220417DD00FB8CB9 /* CopyFiles */,
+				23FF00232800000000000023 /* Embed Frameworks */,
 			);
 			buildRules = (
 			);
@@ -414,6 +434,7 @@
 				232EDA5C21F1B33E0085D362 /* ViewController.m in Sources */,
 				23FF00032800000000000003 /* OpenKeyBridge.m in Sources */,
 				23FF00012800000000000001 /* ModernSettingsView.swift in Sources */,
+				23FF00312800000000000031 /* SparkleUpdater.swift in Sources */,
 				23E2E49E2314FD3A006CCC3E /* SmartSwitchKey.cpp in Sources */,
 				23F512852336386200397988 /* MJAccessibilityUtils.m in Sources */,
 				2389467D21FDDB920030A13B /* OpenKeyManager.m in Sources */,
@@ -583,6 +604,10 @@
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = 8S7348QV8Q;
 				HEADER_SEARCH_PATHS = "";
+				FRAMEWORK_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(PROJECT_DIR)/Frameworks",
+				);
 				INFOPLIST_FILE = ModernKey/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -611,6 +636,10 @@
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = 8S7348QV8Q;
 				HEADER_SEARCH_PATHS = "";
+				FRAMEWORK_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(PROJECT_DIR)/Frameworks",
+				);
 				INFOPLIST_FILE = ModernKey/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",

@@ -66,7 +66,29 @@ hdiutil create -volname "MyOpenKey" \
 
 rm -rf "$STAGING_DIR"
 
-# 3. Tạo mã băm SHA-256
+# 3. Tạo feed tự động cập nhật Sparkle (appcast.xml)
+echo "==> ⚡ Đang tạo feed cập nhật Sparkle: dist/appcast.xml..."
+APPCAST_STAGING=$(mktemp -d /tmp/appcast_staging.XXXXXX)
+cp "dist/$DMG_NAME" "$APPCAST_STAGING/"
+
+if [ -f "$ROOT_DIR/appcast.xml" ]; then
+    cp "$ROOT_DIR/appcast.xml" "$APPCAST_STAGING/appcast.xml"
+fi
+
+GEN_ARGS=(--download-url-prefix "https://github.com/hqdvn/MyOpenKey/releases/download/v$VERSION/")
+if [ -n "$SPARKLE_PRIVATE_KEY" ]; then
+    echo "$SPARKLE_PRIVATE_KEY" | ./Tools/sparkle/generate_appcast --ed-key-file - "${GEN_ARGS[@]}" "$APPCAST_STAGING/"
+elif [ -f "/tmp/sparkle_private_key.txt" ]; then
+    ./Tools/sparkle/generate_appcast --ed-key-file /tmp/sparkle_private_key.txt "${GEN_ARGS[@]}" "$APPCAST_STAGING/"
+else
+    ./Tools/sparkle/generate_appcast "${GEN_ARGS[@]}" "$APPCAST_STAGING/"
+fi
+
+cp "$APPCAST_STAGING/appcast.xml" "dist/appcast.xml"
+cp "$APPCAST_STAGING/appcast.xml" "$ROOT_DIR/appcast.xml"
+rm -rf "$APPCAST_STAGING"
+
+# 4. Tạo mã băm SHA-256
 echo "==> 🔒 Đang tạo mã kiểm tra SHA-256..."
 cd dist
 shasum -a 256 "$DMG_NAME" "$ZIP_NAME" > SHA256SUMS.txt
