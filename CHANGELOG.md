@@ -1,6 +1,6 @@
 # MyOpenKey Changelog
 
-##### MyOpenKey 3.0.0 (macOS) — 23/09/2026
+##### MyOpenKey 0.1.00 (macOS) (Build 1) — 23/09/2026
 Phát triển bởi **Huỳnh Quốc Đạt** ([hqd.vn](https://hqd.vn) · [work@hqd.vn](mailto:work@hqd.vn))  
 Dự án mã nguồn mở độc lập tại [github.com/hqdvn/MyOpenKey](https://github.com/hqdvn/MyOpenKey).
 
