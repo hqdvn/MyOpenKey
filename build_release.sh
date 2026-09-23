@@ -17,13 +17,16 @@ PROJECT="Sources/OpenKey/macOS/OpenKey.xcodeproj"
 SCHEME="OpenKey"
 CONFIGURATION="Release"
 
-# Kiểm tra xem có chứng chỉ "MyOpenKey Local Signing" trong Keychain không
+# Kiểm tra xem có chứng chỉ ký số trong Keychain không
 SIGN_IDENTITY="-"
-if security find-identity -p codesigning | grep -q "MyOpenKey Local Signing"; then
+if security find-identity -p codesigning | grep -q "MyOpenKey Signing"; then
+    SIGN_IDENTITY="MyOpenKey Signing"
+    echo "==> 🔑 Phát hiện chứng chỉ ký số phát hành: $SIGN_IDENTITY"
+elif security find-identity -p codesigning | grep -q "MyOpenKey Local Signing"; then
     SIGN_IDENTITY="MyOpenKey Local Signing"
-    echo "==> 🔑 Phát hiện chứng chỉ ký số: $SIGN_IDENTITY"
+    echo "==> 🔑 Phát hiện chứng chỉ ký số cục bộ: $SIGN_IDENTITY"
 else
-    echo "==> ⚠️  Không tìm thấy chứng chỉ 'MyOpenKey Local Signing', dùng chữ ký ad-hoc (-)"
+    echo "==> ⚠️  Không tìm thấy chứng chỉ 'MyOpenKey Signing', dùng chữ ký ad-hoc (-)"
 fi
 
 echo "==> 🔨 Đang biên dịch Release (Universal Binary: Apple Silicon & Intel)..."
@@ -42,8 +45,13 @@ if [ ! -d "$APP_PATH" ]; then
     exit 1
 fi
 
+if [ "$SIGN_IDENTITY" != "-" ]; then
+    echo "==> ✍️  Đang ký số sâu (deep codesign) cho toàn bộ ứng dụng..."
+    codesign --force --deep -s "$SIGN_IDENTITY" "$APP_PATH"
+fi
+
 # Lấy phiên bản từ Info.plist
-VERSION=$(/usr/libexec/PlistBuddy -c "Print :CFBundleShortVersionString" "$APP_PATH/Contents/Info.plist" 2>/dev/null || echo "0.1.02")
+VERSION=$(/usr/libexec/PlistBuddy -c "Print :CFBundleShortVersionString" "$APP_PATH/Contents/Info.plist" 2>/dev/null || echo "0.1.03")
 echo "==> 📦 Phiên bản: $VERSION"
 
 DMG_NAME="MyOpenKey-$VERSION.dmg"
@@ -58,6 +66,11 @@ echo "==> 💿 Đang tạo bộ cài DMG: dist/$DMG_NAME..."
 STAGING_DIR=$(mktemp -d /tmp/myopenkey_dmg.XXXXXX)
 cp -R "$APP_PATH" "$STAGING_DIR/"
 ln -s /Applications "$STAGING_DIR/Applications"
+
+if [ -f "$ROOT_DIR/Tools/signing/MyOpenKey.cer" ]; then
+    cp "$ROOT_DIR/Tools/signing/MyOpenKey.cer" "$STAGING_DIR/"
+    cp "$ROOT_DIR/Tools/signing/install_cert.command" "$STAGING_DIR/Cài đặt chứng chỉ (Giữ quyền).command"
+fi
 
 hdiutil create -volname "MyOpenKey" \
   -srcfolder "$STAGING_DIR" \

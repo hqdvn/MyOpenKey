@@ -1,5 +1,14 @@
 # MyOpenKey Changelog
 
+##### MyOpenKey 0.1.03 (macOS) (Build 4) — 24/09/2026
+Phát triển bởi **Huỳnh Quốc Đạt** ([hqd.vn](https://hqd.vn) · [work@hqd.vn](mailto:work@hqd.vn))  
+Dự án mã nguồn mở độc lập tại [github.com/hqdvn/MyOpenKey](https://github.com/hqdvn/MyOpenKey).
+
+- **Giải pháp giữ quyền Trợ năng (Accessibility) vĩnh viễn:**
+  - Tích hợp chứng chỉ ký số phát hành cố định `MyOpenKey Signing` (Designated Requirement ổn định trên macOS TCC).
+  - Đính kèm công cụ 1-click `Cài đặt chứng chỉ (Giữ quyền).command` trong file `.dmg` để người dùng thêm chứng chỉ tin cậy vào Keychain máy một lần duy nhất.
+  - Khắc phục triệt để lỗi macOS thu hồi và yêu cầu cấp lại quyền Trợ năng mỗi khi ứng dụng tự động cập nhật bản mới.
+
 ##### MyOpenKey 0.1.02 (macOS) (Build 3) — 24/09/2026
 Phát triển bởi **Huỳnh Quốc Đạt** ([hqd.vn](https://hqd.vn) · [work@hqd.vn](mailto:work@hqd.vn))  
 Dự án mã nguồn mở độc lập tại [github.com/hqdvn/MyOpenKey](https://github.com/hqdvn/MyOpenKey).

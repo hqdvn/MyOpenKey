@@ -87,14 +87,17 @@
 
 1. Tải về file `.dmg` hoặc `.zip` của phiên bản mới nhất tại [MyOpenKey Releases](https://github.com/hqdvn/MyOpenKey/releases/latest).
 2. Mở file `.dmg` ➔ Kéo thả biểu tượng **MyOpenKey** vào thư mục **Applications**.
-3. **Mở ứng dụng lần đầu (Bỏ qua cảnh báo Gatekeeper của macOS)**:
+3. **Cài đặt chứng chỉ giữ quyền vĩnh viễn (Khuyên dùng)**:
+   - Trong file `.dmg`, nhấp đúp vào **`Cài đặt chứng chỉ (Giữ quyền).command`** để tự động thêm chứng chỉ tin cậy của MyOpenKey vào Keychain máy.
+   - Khi đã có chứng chỉ này, macOS sẽ **giữ nguyên quyền Trợ năng (Accessibility) vĩnh viễn**, không bao giờ bị hỏi lại mỗi khi ứng dụng tự động cập nhật phiên bản mới.
+4. **Mở ứng dụng lần đầu (Bỏ qua cảnh báo Gatekeeper của macOS)**:
    - Do ứng dụng nguồn mở chưa đăng ký chứng chỉ trả phí $99/năm của Apple, macOS Sequoia / Sonoma sẽ hiện cảnh báo *"Apple could not verify..."*.
    - **Cách mở**: Vào **Cài đặt hệ thống (System Settings)** ➔ **Quyền riêng tư & Bảo mật (Privacy & Security)** ➔ Kéo xuống mục *Bảo mật (Security)* thấy dòng `"MyOpenKey" đã bị chặn...` ➔ Bấm **Vẫn mở (Open Anyway)** ➔ Nhập mật khẩu máy và chọn **Mở (Open)**.
    - *(Hoặc mở nhanh qua Terminal: `xattr -cr /Applications/MyOpenKey.app`)*.
-4. **Cấp quyền Trợ năng (Accessibility)**:
+5. **Cấp quyền Trợ năng (Accessibility)**:
    - Khi mở lên, app sẽ yêu cầu cấp quyền để điều khiển phím.
    - Chọn **Cấp quyền** ➔ Bật công tắc cho phép **MyOpenKey** trong mục *Trợ năng (Accessibility)*.
-5. Mở lại **MyOpenKey** và tận hưởng trải nghiệm gõ tiếng Việt mượt mà!
+6. Mở lại **MyOpenKey** và tận hưởng trải nghiệm gõ tiếng Việt mượt mà!
 > **Lưu ý:** Để tránh xung đột phím, bạn nên tắt hoặc xóa các bộ gõ tiếng Việt khác đang chạy trên máy trước khi sử dụng.
 
 ---
