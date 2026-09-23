@@ -1018,6 +1018,10 @@ public struct ModernMacroView: View {
                             .textFieldStyle(.roundedBorder)
                             .focused($isShortcutFocused)
                             .frame(width: 140)
+                            .onSubmit {
+                                state.addOrUpdate()
+                                isShortcutFocused = true
+                            }
                     }
 
                     VStack(alignment: .leading, spacing: 4) {
@@ -1026,6 +1030,10 @@ public struct ModernMacroView: View {
                             .foregroundColor(.secondary)
                         TextField("vd: không, người, Việt Nam", text: $state.inputContent)
                             .textFieldStyle(.roundedBorder)
+                            .onSubmit {
+                                state.addOrUpdate()
+                                isShortcutFocused = true
+                            }
                     }
 
                     VStack(alignment: .leading, spacing: 4) {

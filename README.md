@@ -44,6 +44,20 @@
 
 ### 🔄 5. Khởi động cùng hệ thống (`SMAppService`)
 - Hỗ trợ đăng ký khởi động cùng hệ thống thông qua kiến trúc native `SMAppService` trên macOS 13 (Ventura) trở lên, xuất hiện minh bạch trong *System Settings ➔ General ➔ Login Items*. (Lưu ý: trên macOS 12 Monterey, tính năng khởi động cùng máy chưa khả dụng do hệ thống yêu cầu `SMAppService` native).
+
+---
+
+## 📸 Giao diện ứng dụng
+
+<p align="center">
+  <img src="docs/images/settings-light.png" width="48%" alt="Bảng điều khiển - Chế độ sáng" />
+  <img src="docs/images/settings-dark.png" width="48%" alt="Bảng điều khiển - Chế độ tối" />
+</p>
+
+<p align="center">
+  <img src="docs/images/macro-manager.png" width="48%" alt="Thiết lập gõ tắt" />
+  <img src="docs/images/settings-system.png" width="48%" alt="Cài đặt hệ thống & Loại trừ ứng dụng" />
+</p>
 ---
 
 ## ⌨️ Kiểu gõ & Bảng mã hỗ trợ
