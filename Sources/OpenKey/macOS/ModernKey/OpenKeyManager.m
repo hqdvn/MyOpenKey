@@ -31,6 +31,13 @@ CFMachPortRef      eventTap;
 static CGEventMask        eventMask;
 static CFRunLoopSourceRef runLoopSource;
 static dispatch_source_t  tapWatchdog;
+static id                 wakeObserver, sessionObserver;
+
+static void reviveEventTap(void) {
+    if (eventTap && !CGEventTapIsEnabled(eventTap)) {
+        CGEventTapEnable(eventTap, true);
+    }
+}
 
 +(BOOL)isInited {
     return _isInited;
@@ -74,14 +81,19 @@ static dispatch_source_t  tapWatchdog;
     // Enable the event tap.
     CGEventTapEnable(eventTap, true);
     
-    // Watchdog: macOS disables the tap after callback timeouts or sleep/wake.
+    // Callback revives the tap on timeout/user-input disable. Sleep/wake and
+    // session switches can kill it silently: revive on those notifications,
+    // plus a slow watchdog as last-resort fallback (5s keeps CPU idle).
+    NSNotificationCenter* wsCenter = [[NSWorkspace sharedWorkspace] notificationCenter];
+    wakeObserver = [wsCenter addObserverForName:NSWorkspaceDidWakeNotification object:nil
+                                          queue:[NSOperationQueue mainQueue]
+                                     usingBlock:^(NSNotification* n) { reviveEventTap(); }];
+    sessionObserver = [wsCenter addObserverForName:NSWorkspaceSessionDidBecomeActiveNotification object:nil
+                                             queue:[NSOperationQueue mainQueue]
+                                        usingBlock:^(NSNotification* n) { reviveEventTap(); }];
     tapWatchdog = dispatch_source_create(DISPATCH_SOURCE_TYPE_TIMER, 0, 0, dispatch_get_main_queue());
-    dispatch_source_set_timer(tapWatchdog, dispatch_time(DISPATCH_TIME_NOW, 0), 500 * NSEC_PER_MSEC, 100 * NSEC_PER_MSEC);
-    dispatch_source_set_event_handler(tapWatchdog, ^{
-        if (eventTap && !CGEventTapIsEnabled(eventTap)) {
-            CGEventTapEnable(eventTap, true);
-        }
-    });
+    dispatch_source_set_timer(tapWatchdog, dispatch_time(DISPATCH_TIME_NOW, 5 * NSEC_PER_SEC), 5 * NSEC_PER_SEC, 1 * NSEC_PER_SEC);
+    dispatch_source_set_event_handler(tapWatchdog, ^{ reviveEventTap(); });
     dispatch_resume(tapWatchdog);
     
     return YES;
@@ -92,6 +104,9 @@ static dispatch_source_t  tapWatchdog;
             dispatch_source_cancel(tapWatchdog);
             tapWatchdog = nil;
         }
+        NSNotificationCenter* wsCenter = [[NSWorkspace sharedWorkspace] notificationCenter];
+        if (wakeObserver) { [wsCenter removeObserver:wakeObserver]; wakeObserver = nil; }
+        if (sessionObserver) { [wsCenter removeObserver:sessionObserver]; sessionObserver = nil; }
         CFRunLoopRemoveSource(CFRunLoopGetCurrent(), runLoopSource, kCFRunLoopCommonModes);
         CFRelease(runLoopSource);
         runLoopSource = nil;

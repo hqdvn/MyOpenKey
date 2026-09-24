@@ -1,5 +1,24 @@
 # MyOpenKey Changelog
 
+##### MyOpenKey 0.1.04 (macOS) (Build 5) — 24/09/2026
+Phát triển bởi **Huỳnh Quốc Đạt** ([hqd.vn](https://hqd.vn) · [work@hqd.vn](mailto:work@hqd.vn))  
+Dự án mã nguồn mở độc lập tại [github.com/hqdvn/MyOpenKey](https://github.com/hqdvn/MyOpenKey).
+
+- **Gõ mượt trong Spotlight và Alfred:**
+  - Sửa trực tiếp ô nhập qua Accessibility API thay vì gửi Backspace giả, hết lỗi mất/lộn chữ khi gõ nhanh do xung đột với gợi ý inline.
+  - Nhận diện cả Spotlight mới trên macOS 26+ (`com.apple.campo`). Chỉ áp dụng bảng mã Unicode; tự quay về cách gửi phím nếu ô nhập không hỗ trợ.
+  - Raycast giữ cách gửi phím vì ô nhập của Raycast không nhận sửa qua Accessibility.
+- **Ổn định & Tiết kiệm pin:**
+  - Tự bật lại EventTap cả khi macOS tắt do `kCGEventTapDisabledByUserInput` (secure input), không chỉ timeout.
+  - Bật lại EventTap ngay khi máy thức dậy sau Sleep hoặc chuyển lại phiên người dùng; Watchdog dự phòng giãn từ 500ms lên 5s để máy không bị đánh thức liên tục khi rảnh.
+  - Giới hạn thời gian chờ Accessibility 100ms, tránh treo bộ gõ khi app đích không phản hồi.
+- **Hiệu năng & Sửa lỗi:**
+  - Tùy chọn "Tắt Tiếng Việt khi dùng bàn phím ngôn ngữ khác" dùng cache, chỉ cập nhật khi đổi input source thay vì truy vấn mỗi phím; sửa lỗi rò bộ nhớ và giải phóng sai đối tượng (nguy cơ crash) ở code cũ.
+  - Các xử lý đặc thù theo app (Sublime Text, Unicode tổ hợp, sửa gợi ý) dùng app nhận phím, cache theo pid, thay vì truy vấn app đang active mỗi phím; nhận đúng app khi gõ trong Spotlight.
+  - Adobe (Photoshop, Illustrator, InDesign…) và Affinity: bỏ qua workaround gợi ý trình duyệt, hết hiện ô vuông ✕.
+  - Dọn code chết xử lý sự kiện kéo chuột.
+- Một số cải tiến được port từ [mkey](https://github.com/maclifevn/mkey) (GPLv3).
+
 ##### MyOpenKey 0.1.03 (macOS) (Build 4) — 24/09/2026
 Phát triển bởi **Huỳnh Quốc Đạt** ([hqd.vn](https://hqd.vn) · [work@hqd.vn](mailto:work@hqd.vn))  
 Dự án mã nguồn mở độc lập tại [github.com/hqdvn/MyOpenKey](https://github.com/hqdvn/MyOpenKey).

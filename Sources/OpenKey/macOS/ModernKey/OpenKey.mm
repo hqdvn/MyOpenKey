@@ -8,12 +8,12 @@
 #import <Cocoa/Cocoa.h>
 #import <Carbon/Carbon.h>
 #import <Foundation/Foundation.h>
+#include <libproc.h>
 #import "Engine.h"
 #import "AppDelegate.h"
 #import "OpenKeyManager.h"
 #import "ViewController.h"
 
-#define FRONT_APP [[NSWorkspace sharedWorkspace] frontmostApplication].bundleIdentifier
 #define OTHER_CONTROL_KEY (_flag & kCGEventFlagMaskCommand) || (_flag & kCGEventFlagMaskControl) || \
                             (_flag & kCGEventFlagMaskAlternate) || (_flag & kCGEventFlagMaskSecondaryFn) || \
                             (_flag & kCGEventFlagMaskNumericPad) || (_flag & kCGEventFlagMaskHelp)
@@ -59,6 +59,23 @@ extern "C" {
                                      @"com.google.Chrome", @"com.brave.Browser",
                                      @"com.microsoft.edgemac.Dev", @"com.microsoft.edgemac.Beta", @"com.microsoft.Edge.Dev", @"com.microsoft.Edge"];
     NSArray* _recommendWorkaroundDisabledApp = @[@"com.apple.Spotlight"];
+
+    //design apps render the U+202F/U+200C autocomplete trick as a missing-glyph
+    //box and may swallow the following backspace; they have no inline completion.
+    //Prefix match. Ported from mkey (github.com/maclifevn/mkey, GPLv3).
+    NSArray* _recommendWorkaroundSkipPrefix = @[@"com.adobe.", @"com.seriflabs."];
+
+    //overlay search fields that process input asynchronously: synthesized
+    //backspaces race with the inline completion. Edit via Accessibility instead.
+    //Spotlight is a non-activating panel, so detect via the AX-focused element's pid.
+    NSArray* _axSlowPathApp = @[@"com.apple.Spotlight",
+                                @"com.apple.campo",              //new Spotlight (macOS 26+)
+                                @"com.apple.launchpad.launcher",
+                                //Raycast omitted: its field ignores AX edits (drops chars); key events work
+                                @"com.runningwithcrayons.Alfred"];
+
+    //"other language" check: cached, refreshed on input-source change notification
+    bool _isEnglishInputSource = true;
     
     CGEventSourceRef myEventSource = NULL;
     vKeyHookState* pData;
@@ -84,6 +101,13 @@ extern "C" {
     vector<Byte> savedSmartSwitchKeyData; ////use for smart switch key
     
     NSString* _frontMostApp = @"UnknownApp";
+    //app receiving the current event (resolved from its target pid, cached);
+    //set at callback entry, valid for all Send* helpers during that event
+    NSString* _targetApp = nil;
+
+    void UpdateInputSourceCache(void);
+    void AXInvalidateFocusCache(void);
+    CFAbsoluteTime _axLastKeyTime = 0;
     
     void OpenKeyInit() {
         //load saved data
@@ -114,6 +138,15 @@ extern "C" {
         LOAD_DATA(vPerformLayoutCompat, vPerformLayoutCompat);
         
         myEventSource = CGEventSourceCreate(kCGEventSourceStatePrivate);
+
+        UpdateInputSourceCache();
+        static bool inputSourceObserved = false;
+        if (!inputSourceObserved) {
+            inputSourceObserved = true;
+            [[NSDistributedNotificationCenter defaultCenter] addObserverForName:(__bridge NSString*)kTISNotifySelectedKeyboardInputSourceChanged
+                                                                         object:nil queue:[NSOperationQueue mainQueue]
+                                                                     usingBlock:^(NSNotification* note) { UpdateInputSourceCache(); }];
+        }
         pData = (vKeyHookState*)vKeyInit();
 
         
@@ -141,7 +174,9 @@ extern "C" {
         }
     }
     
+
     void RequestNewSession() {
+        AXInvalidateFocusCache();
         //send event signal to Engine
         vKeyHandleEvent(vKeyEvent::Mouse, vKeyEventState::MouseDown, 0);
         
@@ -199,8 +234,155 @@ extern "C" {
         if (!vFixRecommendBrowser) return false;
         if (isSpotlightApp(topApp)) return false;
         if (topApp == nil) return true;
+        for (NSString* prefix in _recommendWorkaroundSkipPrefix) {
+            if ([topApp hasPrefix:prefix]) return false;
+        }
         return ![_recommendWorkaroundDisabledApp containsObject:topApp];
     }
+
+    void UpdateInputSourceCache() {
+        TISInputSourceRef isource = TISCopyCurrentKeyboardInputSource();
+        if (isource == NULL) return;
+        CFArrayRef languages = (CFArrayRef)TISGetInputSourceProperty(isource, kTISPropertyInputSourceLanguages);
+        if (languages != NULL && CFArrayGetCount(languages) > 0) {
+            NSString* lang = (__bridge NSString*)CFArrayGetValueAtIndex(languages, 0);
+            _isEnglishInputSource = [lang isLike:@"en"];
+        }
+        CFRelease(isource);
+    }
+
+    // ---- Accessibility edit path (Spotlight/Alfred). Ported from mkey. ----
+    // ponytail: slow-path app list is hardcoded; add a user-editable list + toggle
+    // when someone needs AX editing in another app.
+    AXUIElementRef _axSystemWide = NULL;
+    AXUIElementRef _axFocused = NULL;
+    bool _axFocusedIsSlow = false;
+    bool _axCacheValid = false;
+
+    void AXInvalidateFocusCache() {
+        if (_axFocused) { CFRelease(_axFocused); _axFocused = NULL; }
+        _axFocusedIsSlow = false;
+        _axCacheValid = false;
+    }
+
+    //one AX IPC per focus change; invalidated by mouse, app switch, ⌘/⌃ keys
+    void AXRefreshFocusCache() {
+        if (_axCacheValid) return;
+        AXInvalidateFocusCache();
+        _axCacheValid = true;
+        if (_axSystemWide == NULL) {
+            _axSystemWide = AXUIElementCreateSystemWide();
+            //AX calls run inside the tap callback: a hung target app would block
+            //typing for the 6s default and get the tap disabled. Cap at 100ms.
+            AXUIElementSetMessagingTimeout(_axSystemWide, 0.1);
+        }
+        AXUIElementRef focused = NULL;
+        if (AXUIElementCopyAttributeValue(_axSystemWide, kAXFocusedUIElementAttribute, (CFTypeRef*)&focused) != kAXErrorSuccess || focused == NULL)
+            return;
+        AXUIElementSetMessagingTimeout(focused, 0.1);
+        _axFocused = focused;
+        pid_t pid = 0;
+        if (AXUIElementGetPid(focused, &pid) != kAXErrorSuccess) return;
+        NSString* bid = [NSRunningApplication runningApplicationWithProcessIdentifier:pid].bundleIdentifier;
+        if (bid != nil && [_axSlowPathApp containsObject:bid]) {
+            _axFocusedIsSlow = true;
+            return;
+        }
+        //new Spotlight may run without a bundle id: match executable path
+        char path[PROC_PIDPATHINFO_MAXSIZE];
+        if (proc_pidpath(pid, path, sizeof(path)) > 0) {
+            _axFocusedIsSlow = strstr(path, "/Spotlight.app/") != NULL || strstr(path, "/Campo.app/") != NULL;
+        }
+    }
+
+    bool AXSlowPathActive() {
+        if (vCodeTable != 0) return false; //Unicode only: AX strings are UTF-16
+        AXRefreshFocusCache();
+        return _axFocusedIsSlow && _axFocused != NULL;
+    }
+
+    //Atomically replace deleteCount chars before the caret (plus any selected
+    //inline completion) with insert. False → caller falls back to key events.
+    bool AXReplaceTextDirect(long deleteCount, NSString* insert) {
+        AXUIElementRef focused = _axFocused;
+        if (focused == NULL) return false;
+
+        AXValueRef rangeVal = NULL;
+        if (AXUIElementCopyAttributeValue(focused, kAXSelectedTextRangeAttribute, (CFTypeRef*)&rangeVal) != kAXErrorSuccess || rangeVal == NULL) {
+            AXInvalidateFocusCache();
+            return false;
+        }
+        CFRange sel = CFRangeMake(0, 0);
+        bool gotRange = AXValueGetValue(rangeVal, (AXValueType)kAXValueCFRangeType, &sel);
+        CFRelease(rangeVal);
+        if (!gotRange || sel.location < deleteCount) return false;
+        CFRange replaceRange = CFRangeMake(sel.location - deleteCount, deleteCount + sel.length);
+
+        //strategy 1: select range, set selected text
+        AXValueRef newRangeVal = AXValueCreate((AXValueType)kAXValueCFRangeType, &replaceRange);
+        AXError err = AXUIElementSetAttributeValue(focused, kAXSelectedTextRangeAttribute, newRangeVal);
+        CFRelease(newRangeVal);
+        if (err == kAXErrorSuccess &&
+            AXUIElementSetAttributeValue(focused, kAXSelectedTextAttribute, (__bridge CFTypeRef)insert) == kAXErrorSuccess)
+            return true;
+
+        //strategy 2: rewrite whole value, restore caret
+        CFTypeRef valueRef = NULL;
+        if (AXUIElementCopyAttributeValue(focused, kAXValueAttribute, &valueRef) != kAXErrorSuccess || valueRef == NULL) {
+            AXInvalidateFocusCache();
+            return false;
+        }
+        if (CFGetTypeID(valueRef) != CFStringGetTypeID()) { CFRelease(valueRef); return false; }
+        NSString* value = (__bridge_transfer NSString*)valueRef;
+        if ((NSUInteger)(replaceRange.location + replaceRange.length) > value.length) return false;
+        NSString* newValue = [value stringByReplacingCharactersInRange:NSMakeRange(replaceRange.location, replaceRange.length) withString:insert];
+        if (AXUIElementSetAttributeValue(focused, kAXValueAttribute, (__bridge CFTypeRef)newValue) != kAXErrorSuccess) {
+            AXInvalidateFocusCache();
+            return false;
+        }
+        CFRange caret = CFRangeMake(replaceRange.location + (long)insert.length, 0);
+        AXValueRef caretVal = AXValueCreate((AXValueType)kAXValueCFRangeType, &caret);
+        AXUIElementSetAttributeValue(focused, kAXSelectedTextRangeAttribute, caretVal);
+        CFRelease(caretVal);
+        return true;
+    }
+
+    //engine char data (Unicode table) → UTF-16; 0 on unmappable key
+    Uint16 AXCharFromData(Uint32 t) {
+        if (t & PURE_CHARACTER_MASK) return (Uint16)t;
+        if (!(t & CHAR_CODE_MASK)) return keyCodeToCharacter(t);
+        return (Uint16)t;
+    }
+
+    bool TryAXProcessKey() {
+        if (pData->newCharCount > MAX_BUFF) return false;
+        Uint16 buf[MAX_BUFF + 1];
+        int n = 0;
+        for (int k = pData->newCharCount - 1; k >= 0; k--) {
+            if ((buf[n++] = AXCharFromData(pData->charData[k])) == 0) return false;
+        }
+        if (pData->code == vRestore || pData->code == vRestoreAndStartNewSession) {
+            Uint16 keyChar = keyCodeToCharacter(_keycode | ((_flag & kCGEventFlagMaskAlphaShift) || (_flag & kCGEventFlagMaskShift) ? CAPS_MASK : 0));
+            if (keyChar == 0) return false; //restore ends with control key: event path handles it
+            buf[n++] = keyChar;
+        }
+        if (!AXReplaceTextDirect(pData->backspaceCount, [NSString stringWithCharacters:buf length:n]))
+            return false;
+        if (pData->code == vRestoreAndStartNewSession)
+            startNewSession();
+        return true;
+    }
+
+    bool TryAXProcessMacro() {
+        NSMutableString* s = [NSMutableString stringWithCapacity:pData->macroData.size()];
+        for (size_t k = 0; k < pData->macroData.size(); k++) {
+            Uint16 ch = AXCharFromData(pData->macroData[k]);
+            if (ch == 0) return false;
+            [s appendFormat:@"%C", ch];
+        }
+        return AXReplaceTextDirect(pData->backspaceCount, s);
+    }
+
     void saveSmartSwitchKeyData() {
         getSmartSwitchKeySaveData(savedSmartSwitchKeyData);
         NSData* _data = [NSData dataWithBytes:savedSmartSwitchKeyData.data() length:savedSmartSwitchKeyData.size()];
@@ -215,6 +397,7 @@ extern "C" {
     }
 
     void OnActiveAppChanged() { //use for smart switch key; improved on Sep 28th, 2019
+        AXInvalidateFocusCache();
         queryFrontMostApp();
 
         // Manual app exclusion: force English while inside, restore on leave.
@@ -381,7 +564,7 @@ extern "C" {
             InsertKeyLength(1);
         
         _newChar = 0x202F; //empty char
-        if ([_niceSpaceApp containsObject:FRONT_APP]) {
+        if ([_niceSpaceApp containsObject:_targetApp]) {
             _newChar = 0x200C; //Unicode character with empty space
         }
         
@@ -422,7 +605,7 @@ extern "C" {
         
         if (IS_DOUBLE_CODE(vCodeTable)) { //VNI or Unicode Compound
             if (_syncKey.back() > 1) {
-                if (!(vCodeTable == 3 && containUnicodeCompoundApp(FRONT_APP))) {
+                if (!(vCodeTable == 3 && containUnicodeCompoundApp(_targetApp))) {
                     PostBackspaceEvent();
                 }
             }
@@ -443,7 +626,7 @@ extern "C" {
         
         if (IS_DOUBLE_CODE(vCodeTable)) { //VNI or Unicode Compound
             if (_syncKey.back() > 1) {
-                if (!(vCodeTable == 3 && containUnicodeCompoundApp(FRONT_APP))) {
+                if (!(vCodeTable == 3 && containUnicodeCompoundApp(_targetApp))) {
                     CGEventTapPostEvent(_proxy, eventVkeyDown);
                     CGEventTapPostEvent(_proxy, eventVkeyUp);
                 }
@@ -601,8 +784,14 @@ extern "C" {
     }
     
     void handleMacro() {
+        //Spotlight-like fields: atomic AX replace, then deliver trigger key normally
+        if (AXSlowPathActive() && TryAXProcessMacro()) {
+            SendKeyCode(_keycode | (_flag & kCGEventFlagMaskShift ? CAPS_MASK : 0));
+            return;
+        }
+
         //fix autocomplete
-        if (shouldUseRecommendWorkaround(FRONT_APP)) {
+        if (shouldUseRecommendWorkaround(_targetApp)) {
             SendEmptyCharacter();
             pData->backspaceCount++;
         }
@@ -658,8 +847,8 @@ extern "C" {
      * MAIN Callback.
      */
     CGEventRef OpenKeyCallback(CGEventTapProxy proxy, CGEventType type, CGEventRef event, void *refcon) {
-        // macOS kills slow taps (sleep/wake, callback timeout); revive immediately.
-        if (type == kCGEventTapDisabledByTimeout) {
+        // macOS kills taps on callback timeout or secure input; revive immediately.
+        if (type == kCGEventTapDisabledByTimeout || type == kCGEventTapDisabledByUserInput) {
             CGEventTapEnable(eventTap, true);
             return event;
         }
@@ -668,7 +857,7 @@ extern "C" {
             return event;
         }
         
-        NSString* targetApp = getTargetApp(event);
+        NSString* targetApp = _targetApp = getTargetApp(event);
         
         _flag = CGEventGetFlags(event);
         _keycode = (CGKeyCode)CGEventGetIntegerValueField(event, kCGKeyboardEventKeycode);
@@ -728,8 +917,7 @@ extern "C" {
 
         // Also check correct event hooked
         if ((type != kCGEventKeyDown) && (type != kCGEventKeyUp) &&
-            (type != kCGEventLeftMouseDown) && (type != kCGEventRightMouseDown) &&
-            (type != kCGEventLeftMouseDragged) && (type != kCGEventRightMouseDragged))
+            (type != kCGEventLeftMouseDown) && (type != kCGEventRightMouseDown))
             return event;
         
         _proxy = proxy;
@@ -751,32 +939,25 @@ extern "C" {
         }
         
         //handle mouse
-        if (type == kCGEventLeftMouseDown || type == kCGEventRightMouseDown || type == kCGEventLeftMouseDragged || type == kCGEventRightMouseDragged) {
+        if (type == kCGEventLeftMouseDown || type == kCGEventRightMouseDown) {
             RequestNewSession();
             return event;
         }
 
-        //if "turn off Vietnamese when in other language" mode on
-        if(vOtherLanguage){
-            TISInputSourceRef isource = TISCopyCurrentKeyboardInputSource();
-            if ( isource != NULL )
-            {
-                CFArrayRef languages = (CFArrayRef) TISGetInputSourceProperty(isource, kTISPropertyInputSourceLanguages);
-                
-                if (CFArrayGetCount(languages) > 0) {
-                    CFStringRef langRef = (CFStringRef)CFArrayGetValueAtIndex(languages, 0);
-                    NSString *currentLanguage = (__bridge NSString *)langRef;
-                    if(![currentLanguage isLike:@"en"]){
-                        return event;
-                    }
-                    CFRelease(langRef);
-                    CFRelease(isource);
-                }
-            }
+        //if "turn off Vietnamese when in other language" mode on (cached, see UpdateInputSourceCache)
+        if (vOtherLanguage && !_isEnglishInputSource) {
+            return event;
         }
         
         //handle keyboard
         if (type == kCGEventKeyDown) {
+            //⌘/⌃ often moves focus without a click (⌘Space opens Spotlight);
+            //a typing pause may mean a new field (⌥Space launchers): re-detect lazily
+            CFAbsoluteTime now = CFAbsoluteTimeGetCurrent();
+            if ((_flag & (kCGEventFlagMaskCommand | kCGEventFlagMaskControl)) || now - _axLastKeyTime > 0.5) {
+                AXInvalidateFocusCache();
+            }
+            _axLastKeyTime = now;
             //send event signal to Engine
             vKeyHandleEvent(vKeyEvent::Keyboard,
                             vKeyEventState::KeyDown,
@@ -802,7 +983,12 @@ extern "C" {
                 }
                 return event;
             } else if (pData->code == vWillProcess || pData->code == vRestore || pData->code == vRestoreAndStartNewSession) { //handle result signal
-                
+
+                //Spotlight/Alfred: atomic AX edit; falls through on failure
+                if (AXSlowPathActive() && TryAXProcessKey()) {
+                    return NULL;
+                }
+
                 //fix autocomplete
                 if (shouldUseRecommendWorkaround(targetApp) && pData->extCode != 4) {
                     if (vFixChromiumBrowser && [_unicodeCompoundApp containsObject:targetApp]) {

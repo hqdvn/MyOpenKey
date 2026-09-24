@@ -29,7 +29,8 @@
 - Hỗ trợ đầy đủ **VoiceOver** và khả năng điều hướng bàn phím chuẩn hệ sinh thái Apple.
 
 ### ⚡ 2. Ổn định tối đa & Chống đơ phím
-- **Tự động kết nối lại (`EventTap Watchdog`)**: Bộ hẹn giờ mỗi 500ms tự động phát hiện và bật lại kết nối bàn phím nếu macOS ngắt EventTap sau khi máy Sleep/Wake hoặc mở khóa màn hình.
+- **Tự động kết nối lại EventTap**: tự bật lại kết nối bàn phím ngay khi macOS ngắt EventTap (timeout, secure input), khi máy thức dậy sau Sleep hoặc khi chuyển lại phiên người dùng; thêm bộ giám sát dự phòng 5 giây để máy không bị đánh thức liên tục khi rảnh.
+- **Gõ mượt trong Spotlight & Alfred**: sửa trực tiếp ô nhập qua Accessibility API thay vì gửi Backspace giả, không còn mất chữ khi gõ nhanh cạnh gợi ý tự động (hỗ trợ cả Spotlight mới trên macOS 26+).
 - **Cải thiện độ ổn định Backspace**: Cấp phát sự kiện Backspace mới cho mỗi thao tác gửi (`PostBackspaceEvent`), khắc phục lỗi nghẽn hàng đợi phím trên Apple Mail và các ứng dụng WebKit.
 - **Giảm tải sự kiện thừa**: Bỏ hook sự kiện kéo chuột (`MouseDragged`) khỏi bộ lắng nghe để tiết kiệm tài nguyên xử lý.
 - **Xử lý đa màn hình & Spaces**: Bảng điều khiển tự động di chuyển đến Desktop/Space đang hoạt động khi mở từ Menu bar.

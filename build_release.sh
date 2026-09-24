@@ -51,7 +51,7 @@ if [ "$SIGN_IDENTITY" != "-" ]; then
 fi
 
 # Lấy phiên bản từ Info.plist
-VERSION=$(/usr/libexec/PlistBuddy -c "Print :CFBundleShortVersionString" "$APP_PATH/Contents/Info.plist" 2>/dev/null || echo "0.1.03")
+VERSION=$(/usr/libexec/PlistBuddy -c "Print :CFBundleShortVersionString" "$APP_PATH/Contents/Info.plist" 2>/dev/null || echo "0.1.04")
 echo "==> 📦 Phiên bản: $VERSION"
 
 DMG_NAME="MyOpenKey-$VERSION.dmg"
