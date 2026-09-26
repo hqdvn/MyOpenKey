@@ -44,7 +44,7 @@
 	<key>NSPrincipalClass</key>
 	<string>NSApplication</string>
 	<key>SUFeedURL</key>
-	<string>https://raw.githubusercontent.com/hqdvn/MyOpenKey/master/appcast.xml</string>
+	<string>https://raw.githubusercontent.com/hqdvn/MyOpenKey/main/appcast.xml</string>
 	<key>SUPublicEDKey</key>
 	<string>Ky9a3DAQW1Ppodk/VME92zdsQ1XzDFQG5mLTu3GhP08=</string>
 	<key>SUEnableAutomaticChecks</key>
