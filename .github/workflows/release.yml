@@ -38,12 +38,20 @@ jobs:
           security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k "$KEYCHAIN_PASSWORD" "$KEYCHAIN_PATH"
 
           security list-keychains -d user -s "$KEYCHAIN_PATH" $(security list-keychains -d user | tr -d '"')
+
+          security find-identity -v -p codesigning | grep -q "Developer ID Application: Quoc Dat Huynh (L4ADXX588J)" || {
+            echo "Developer ID Application certificate missing from imported P12"
+            exit 1
+          }
           rm -f "$CERT_FILE"
 
 
-      - name: Build Universal Binary & Package Installer
+      - name: Build, Sign, Notarize & Package Installer
         env:
           SPARKLE_PRIVATE_KEY: ${{ secrets.SPARKLE_PRIVATE_KEY }}
+          NOTARY_KEY_P8: ${{ secrets.NOTARY_KEY_P8 }}
+          NOTARY_KEY_ID: ${{ secrets.NOTARY_KEY_ID }}
+          NOTARY_ISSUER_ID: ${{ secrets.NOTARY_ISSUER_ID }}
         run: |
           chmod +x build_release.sh
           ./build_release.sh
@@ -55,7 +63,6 @@ jobs:
             dist/*.zip
             dist/*.txt
             dist/*.xml
-            Tools/signing/MyOpenKey.cer
           draft: false
           prerelease: false
           generate_release_notes: true

@@ -1,5 +1,16 @@
 # MyOpenKey Changelog
 
+##### MyOpenKey 0.1.05 (macOS) (Build 6) — 27/09/2026
+Phát triển bởi **Huỳnh Quốc Đạt** ([hqd.vn](https://hqd.vn) · [work@hqd.vn](mailto:work@hqd.vn))
+Dự án mã nguồn mở độc lập tại [github.com/hqdvn/MyOpenKey](https://github.com/hqdvn/MyOpenKey).
+
+- **Ký Developer ID & Notarize bởi Apple:**
+  - Ứng dụng và bộ cài `.dmg` được ký bằng chứng chỉ Apple Developer ID, bật Hardened Runtime và được Apple notarize.
+  - Mở ứng dụng ngay lần đầu, không còn cảnh báo *"Apple could not verify..."*, không cần `xattr` hay bấm *Open Anyway*.
+  - Bỏ chứng chỉ tự ký `MyOpenKey Signing` và công cụ `Cài đặt chứng chỉ (Giữ quyền).command` khỏi bộ cài.
+- **Lưu ý khi cập nhật từ bản cũ:** do đổi chứng chỉ ký, macOS sẽ yêu cầu **cấp lại quyền Trợ năng (Accessibility) một lần duy nhất**. Các bản sau giữ nguyên quyền.
+- Đổi nhánh chính của kho mã từ `master` sang `main`; Sparkle và kiểm tra phiên bản dùng đường dẫn mới.
+
 ##### MyOpenKey 0.1.04 (macOS) (Build 5) — 24/09/2026
 Phát triển bởi **Huỳnh Quốc Đạt** ([hqd.vn](https://hqd.vn) · [work@hqd.vn](mailto:work@hqd.vn))  
 Dự án mã nguồn mở độc lập tại [github.com/hqdvn/MyOpenKey](https://github.com/hqdvn/MyOpenKey).
