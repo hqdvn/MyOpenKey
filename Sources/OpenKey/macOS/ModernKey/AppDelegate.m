@@ -68,6 +68,7 @@ extern bool convertToolDontAlertWhenCompleted;
 
 
 @implementation AppDelegate {
+    NSTimer* _permissionPollTimer;
     NSWindowController *_mainWC;
     NSWindowController *_macroWC;
     NSWindowController *_convertWC;
@@ -92,24 +93,63 @@ extern bool convertToolDontAlertWhenCompleted;
     NSMenuItem* mnuQuickConvert;
 }
 
+-(void)startRunningApp {
+    vShowIconOnDock = (int)[[NSUserDefaults standardUserDefaults] integerForKey:@"vShowIconOnDock"];
+    if (vShowIconOnDock)
+        [NSApp setActivationPolicy: NSApplicationActivationPolicyRegular];
+    
+    if (vSwitchKeyStatus & 0x8000)
+        NSBeep();
+
+    [self createStatusBarMenu];
+    
+    //init
+    dispatch_async(dispatch_get_main_queue(), ^{
+        if (![OpenKeyManager initEventTap]) {
+            [self onControlPanelSelected];
+        } else {
+            NSInteger showui = [[NSUserDefaults standardUserDefaults] integerForKey:@"ShowUIOnStartup"];
+            if (showui == 1) {
+                [self onControlPanelSelected];
+            }
+        }
+        [self setQuickConvertString];
+    });
+    
+    //load default config if is first launch
+    if ([[NSUserDefaults standardUserDefaults] boolForKey:@"NonFirstTime"] == 0) {
+        [self loadDefaultConfig];
+    }
+    [[NSUserDefaults standardUserDefaults] setInteger:1 forKey:@"NonFirstTime"];
+    
+    //check update if enable
+    NSInteger dontCheckUpdate = [[NSUserDefaults standardUserDefaults] integerForKey:@"DontCheckUpdate"];
+    if (!dontCheckUpdate)
+        [OpenKeyManager checkNewVersion:nil callbackFunc:nil];
+    
+    //correct run on startup
+    NSInteger val = [[NSUserDefaults standardUserDefaults] integerForKey:@"RunOnStartup"];
+    [appDelegate setRunOnStartup:val];
+}
+
 -(void)askPermission {
-    NSAlert *alert = [[NSAlert alloc] init];
-    [alert setMessageText: [NSString stringWithFormat:@"MyOpenKey cần bạn cấp quyền để có thể hoạt động!"]];
-    [alert setInformativeText:@"Vui lòng chạy lại ứng dụng sau khi cấp quyền."];
-
-    [alert addButtonWithTitle:@"Không"];
-    [alert addButtonWithTitle:@"Cấp quyền"];
-
-    [alert.window makeKeyAndOrderFront:nil];
-    [alert.window setLevel:NSStatusWindowLevel];
-
-    NSModalResponse res = [alert runModal];
-
-    if (res == 1001) {
-        MJAccessibilityOpenPanel();
+    // Mở trang Accessibility trong Cài đặt hệ thống và kích hoạt prompt
+    MJAccessibilityOpenPanel();
+    NSURL* prefURL = [NSURL URLWithString:@"x-apple.systempreferences:com.apple.preference.security?Privacy_Accessibility"];
+    if (prefURL) {
+        [[NSWorkspace sharedWorkspace] openURL:prefURL];
     }
 
-    [NSApp terminate:0];
+    // Tự động phát hiện khi được cấp quyền, không cần mở lại app
+    [_permissionPollTimer invalidate];
+    _permissionPollTimer = [NSTimer timerWithTimeInterval:1.0 repeats:YES block:^(NSTimer *timer) {
+        if (MJAccessibilityIsEnabled()) {
+            [timer invalidate];
+            self->_permissionPollTimer = nil;
+            [self startRunningApp];
+        }
+    }];
+    [[NSRunLoop mainRunLoop] addTimer:_permissionPollTimer forMode:NSRunLoopCommonModes];
 }
 
 - (void)applicationDidFinishLaunching:(NSNotification *)aNotification {
@@ -152,42 +192,7 @@ extern bool convertToolDontAlertWhenCompleted;
         return;
     }
     
-    vShowIconOnDock = (int)[[NSUserDefaults standardUserDefaults] integerForKey:@"vShowIconOnDock"];
-    if (vShowIconOnDock)
-        [NSApp setActivationPolicy: NSApplicationActivationPolicyRegular];
-    
-    if (vSwitchKeyStatus & 0x8000)
-        NSBeep();
-
-    [self createStatusBarMenu];
-    
-    //init
-    dispatch_async(dispatch_get_main_queue(), ^{
-        if (![OpenKeyManager initEventTap]) {
-            [self onControlPanelSelected];
-        } else {
-            NSInteger showui = [[NSUserDefaults standardUserDefaults] integerForKey:@"ShowUIOnStartup"];
-            if (showui == 1) {
-                [self onControlPanelSelected];
-            }
-        }
-        [self setQuickConvertString];
-    });
-    
-    //load default config if is first launch
-    if ([[NSUserDefaults standardUserDefaults] boolForKey:@"NonFirstTime"] == 0) {
-        [self loadDefaultConfig];
-    }
-    [[NSUserDefaults standardUserDefaults] setInteger:1 forKey:@"NonFirstTime"];
-    
-    //check update if enable
-    NSInteger dontCheckUpdate = [[NSUserDefaults standardUserDefaults] integerForKey:@"DontCheckUpdate"];
-    if (!dontCheckUpdate)
-        [OpenKeyManager checkNewVersion:nil callbackFunc:nil];
-    
-    //correct run on startup
-    NSInteger val = [[NSUserDefaults standardUserDefaults] integerForKey:@"RunOnStartup"];
-    [appDelegate setRunOnStartup:val];
+    [self startRunningApp];
 }
 
 - (BOOL)applicationShouldHandleReopen:(NSApplication *)sender hasVisibleWindows:(BOOL)flag {

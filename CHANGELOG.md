@@ -8,6 +8,9 @@ Dự án mã nguồn mở độc lập tại [github.com/hqdvn/MyOpenKey](https:
   - Ứng dụng và bộ cài `.dmg` được ký bằng chứng chỉ Apple Developer ID, bật Hardened Runtime và được Apple notarize.
   - Mở ứng dụng ngay lần đầu, không còn cảnh báo *"Apple could not verify..."*, không cần `xattr` hay bấm *Open Anyway*.
   - Bỏ chứng chỉ tự ký `MyOpenKey Signing` và công cụ `Cài đặt chứng chỉ (Giữ quyền).command` khỏi bộ cài.
+- **Tự động kích hoạt khi được cấp quyền Trợ năng:**
+  - Mở app lần đầu chưa có quyền: tự mở trang Cài đặt hệ thống và theo dõi ngầm (polling mỗi 1s).
+  - Người dùng vừa bật công tắc, MyOpenKey tự kích hoạt menu bar và engine gõ ngay lập tức, không cần khởi động lại app hay nhấn mở lại.
 - **Lưu ý khi cập nhật từ bản cũ:** do đổi chứng chỉ ký, macOS sẽ yêu cầu **cấp lại quyền Trợ năng (Accessibility) một lần duy nhất**. Các bản sau giữ nguyên quyền.
 - Đổi nhánh chính của kho mã từ `master` sang `main`; Sparkle và kiểm tra phiên bản dùng đường dẫn mới.
 
