@@ -104,7 +104,7 @@ xcrun stapler staple "$APP_PATH"
 spctl --assess --type execute --verbose=2 "$APP_PATH"
 
 # Lấy phiên bản từ Info.plist
-VERSION=$(/usr/libexec/PlistBuddy -c "Print :CFBundleShortVersionString" "$APP_PATH/Contents/Info.plist" 2>/dev/null || echo "0.1.05")
+VERSION=$(/usr/libexec/PlistBuddy -c "Print :CFBundleShortVersionString" "$APP_PATH/Contents/Info.plist" 2>/dev/null || echo "0.1.06")
 echo "==> 📦 Phiên bản: $VERSION"
 
 DMG_NAME="MyOpenKey-$VERSION.dmg"

@@ -1,21 +1,30 @@
 # MyOpenKey Changelog
 
-##### MyOpenKey 0.1.05 (macOS) (Build 6) — 27/09/2026
+##### MyOpenKey 0.1.06 (macOS) (Build 7) — 28/09/2026
 Phát triển bởi **Huỳnh Quốc Đạt** ([hqd.vn](https://hqd.vn) · [work@hqd.vn](mailto:work@hqd.vn))
 Dự án mã nguồn mở độc lập tại [github.com/hqdvn/MyOpenKey](https://github.com/hqdvn/MyOpenKey).
 
-- **Ký Developer ID & Notarize bởi Apple:**
-  - Ứng dụng và bộ cài `.dmg` được ký bằng chứng chỉ Apple Developer ID, bật Hardened Runtime và được Apple notarize.
-  - Mở ứng dụng ngay lần đầu, không còn cảnh báo *"Apple could not verify..."*, không cần `xattr` hay bấm *Open Anyway*.
-  - Bỏ chứng chỉ tự ký `MyOpenKey Signing` và công cụ `Cài đặt chứng chỉ (Giữ quyền).command` khỏi bộ cài.
 - **Tự động kích hoạt khi được cấp quyền Trợ năng:**
-  - Mở app lần đầu chưa có quyền: tự mở trang Cài đặt hệ thống và theo dõi ngầm (polling mỗi 1s).
-  - Người dùng vừa bật công tắc, MyOpenKey tự kích hoạt menu bar và engine gõ ngay lập tức, không cần khởi động lại app hay nhấn mở lại.
+  - Mở app lần đầu chưa có quyền: tự mở trang Cài đặt hệ thống và theo dõi ngầm định kỳ mỗi 1 giây.
+  - Ngay khi người dùng bật công tắc cho phép, MyOpenKey tự kích hoạt menu bar và engine gõ ngay lập tức, không cần khởi động lại hay mở lại app.
 - **Sửa lỗi "Kiểm tra cập nhật" lần đầu không phản hồi:**
   - Khởi tạo sớm Sparkle Controller ngay khi app mở, đưa việc hiển thị UI vào chế độ RunLoop mặc định để Menu Bar đóng hẳn và tự động thử lại sau 300ms nếu updater chưa kịp hoàn thành chu kỳ khởi tạo.
 - **Đồng bộ thương hiệu MyOpenKey:**
   - Cập nhật dòng *"Tạm tắt OpenKey bằng phím ⌘"* thành *"Tạm tắt MyOpenKey bằng phím ⌘"* trong tab Tiện ích của Bảng điều khiển và đồng bộ toàn bộ tooltip trong Storyboard.
-- **Lưu ý khi cập nhật từ bản cũ:** do đổi chứng chỉ ký, macOS sẽ yêu cầu **cấp lại quyền Trợ năng (Accessibility) một lần duy nhất**. Các bản sau giữ nguyên quyền.
+- **Làm mới hình ảnh giao diện:**
+  - Chụp mới toàn bộ 5 ảnh màn hình thực tế trong `README.md` theo chuẩn giao diện MyOpenKey mới nhất.
+- **Nâng cấp CI Release:**
+  - Nâng cấp `actions/checkout` lên `v7` và `softprops/action-gh-release` lên `v3` chạy trên Node 24 hiện đại, sạch toàn bộ warning của GitHub Actions.
+
+##### MyOpenKey 0.1.05 (macOS) (Build 6) — 28/09/2026
+Phát triển bởi **Huỳnh Quốc Đạt** ([hqd.vn](https://hqd.vn) · [work@hqd.vn](mailto:work@hqd.vn))
+Dự án mã nguồn mở độc lập tại [github.com/hqdvn/MyOpenKey](https://github.com/hqdvn/MyOpenKey).
+
+- **Ký Developer ID & Notarize bởi Apple:**
+  - Ứng dụng và bộ cài `.dmg` được ký bằng chứng chỉ Apple Developer ID, bật Hardened Runtime và được Apple notarize chính thức.
+  - Mở ứng dụng ngay lần đầu, không còn cảnh báo *"Apple could not verify..."*, không cần `xattr` hay bấm *Open Anyway*.
+  - Bỏ chứng chỉ tự ký `MyOpenKey Signing` và công cụ `Cài đặt chứng chỉ (Giữ quyền).command` khỏi bộ cài.
+- **Lưu ý khi cập nhật từ bản cũ:** do đổi chứng chỉ ký sang Developer ID, macOS sẽ yêu cầu **cấp lại quyền Trợ năng (Accessibility) một lần duy nhất**. Các bản sau giữ nguyên quyền vĩnh viễn.
 - Đổi nhánh chính của kho mã từ `master` sang `main`; Sparkle và kiểm tra phiên bản dùng đường dẫn mới.
 
 ##### MyOpenKey 0.1.04 (macOS) (Build 5) — 24/09/2026
