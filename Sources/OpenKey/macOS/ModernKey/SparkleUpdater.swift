@@ -23,10 +23,31 @@ import Sparkle
         self.controller = SPUStandardUpdaterController(startingUpdater: true, updaterDelegate: delegate, userDriverDelegate: delegate)
     }
     
+    @objc public func start() {
+        // Đảm bảo singleton controller được khởi tạo sớm ngay khi app launch
+        _ = controller
+    }
+    
     @objc public func checkForUpdates() {
-        DispatchQueue.main.async {
+        // Đưa việc hiển thị UI ra RunLoop default để menu bar đóng hoàn toàn
+        RunLoop.main.perform(inModes: [.default]) { [weak self] in
+            guard let self = self else { return }
             NSApp.activate(ignoringOtherApps: true)
-            self.controller?.checkForUpdates(nil)
+            
+            guard let controller = self.controller else { return }
+            
+            // Nếu updater đã sẵn sàng, gọi trực tiếp
+            if controller.updater.canCheckForUpdates {
+                controller.checkForUpdates(nil)
+                return
+            }
+            
+            // Nếu vừa khởi động và Sparkle chưa xong chu kỳ init runloop:
+            // retry sau 0.3s thay vì bỏ qua khiến người dùng phải bấm lần 2
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+                NSApp.activate(ignoringOtherApps: true)
+                controller.checkForUpdates(nil)
+            }
         }
     }
     

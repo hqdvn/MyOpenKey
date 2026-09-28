@@ -103,6 +103,8 @@ extern bool convertToolDontAlertWhenCompleted;
 
     [self createStatusBarMenu];
     
+    // Khởi động sớm controller Sparkle ngay khi chạy app để sẵn sàng cho lần bấm đầu tiên
+    [[SparkleUpdater shared] start];
     //init
     dispatch_async(dispatch_get_main_queue(), ^{
         if (![OpenKeyManager initEventTap]) {
