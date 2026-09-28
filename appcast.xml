@@ -3,6 +3,14 @@
     <channel>
         <title>MyOpenKey</title>
         <item>
+            <title>0.1.05</title>
+            <pubDate>Mon, 28 Sep 2026 00:13:25 +0000</pubDate>
+            <sparkle:version>6</sparkle:version>
+            <sparkle:shortVersionString>0.1.05</sparkle:shortVersionString>
+            <sparkle:minimumSystemVersion>12.0</sparkle:minimumSystemVersion>
+            <enclosure url="https://github.com/hqdvn/MyOpenKey/releases/download/v0.1.05/MyOpenKey-0.1.05.dmg" length="3665085" type="application/octet-stream" sparkle:edSignature="ZuV11g8Fxy0QgVLO4VnYq40mRKrCV3V9FEqfszL8N1fbdiz4Vf2B+lKR6cYYoEcYWd/Q+Wwk/9ajJFWxPppGCg=="/>
+        </item>
+        <item>
             <title>0.1.04</title>
             <pubDate>Thu, 24 Sep 2026 05:40:58 +0000</pubDate>
             <sparkle:version>5</sparkle:version>
@@ -17,14 +25,6 @@
             <sparkle:shortVersionString>0.1.03</sparkle:shortVersionString>
             <sparkle:minimumSystemVersion>12.0</sparkle:minimumSystemVersion>
             <enclosure url="https://github.com/hqdvn/MyOpenKey/releases/download/v0.1.03/MyOpenKey-0.1.03.dmg" length="3600099" type="application/octet-stream" sparkle:edSignature="lqN1kW6vlGMd5XFd52FZw4JCeY7r44o6bVLxBuyVymPyzWkwGdo6YbP/4hKU1iPSvzBm1HEjHBiRNqtVqW2KAA=="/>
-        </item>
-        <item>
-            <title>0.1.02</title>
-            <pubDate>Wed, 23 Sep 2026 19:13:10 +0000</pubDate>
-            <sparkle:version>3</sparkle:version>
-            <sparkle:shortVersionString>0.1.02</sparkle:shortVersionString>
-            <sparkle:minimumSystemVersion>12.0</sparkle:minimumSystemVersion>
-            <enclosure url="https://github.com/hqdvn/MyOpenKey/releases/download/v0.1.02/MyOpenKey-0.1.02.dmg" length="3583723" type="application/octet-stream" sparkle:edSignature="mdtR/E1v1/Epw9055prgWFKFzAkZso4SyJwmR+qaqSa95kw+MgJwY6rG9/BMiUV1tWXYcMPG+fesnIEVBTEMDA=="/>
         </item>
     </channel>
 </rss>
