@@ -88,12 +88,9 @@
 
 1. Tải về file `.dmg` hoặc `.zip` của phiên bản mới nhất tại [MyOpenKey Releases](https://github.com/hqdvn/MyOpenKey/releases/latest).
 2. Mở file `.dmg` ➔ Kéo thả biểu tượng **MyOpenKey** vào thư mục **Applications**, rồi mở ứng dụng.
-   - Ứng dụng được ký **Developer ID** và **notarize** bởi Apple nên mở được ngay, không có cảnh báo Gatekeeper.
 3. **Cấp quyền Trợ năng (Accessibility)**:
-   - Khi mở lên, app sẽ yêu cầu cấp quyền để điều khiển phím.
-   - Chọn **Cấp quyền** ➔ Bật công tắc cho phép **MyOpenKey** trong mục *Trợ năng (Accessibility)*.
+   - Chọn **Cấp quyền** ➔ Bật công tắc cho phép **MyOpenKey** trong mục *Trợ năng (Accessibility)* khi macOS yêu cầu.
    - Quyền được giữ nguyên qua các bản tự động cập nhật.
-4. Mở lại **MyOpenKey** và tận hưởng trải nghiệm gõ tiếng Việt mượt mà!
 > **Lưu ý:** Để tránh xung đột phím, bạn nên tắt hoặc xóa các bộ gõ tiếng Việt khác đang chạy trên máy trước khi sử dụng.
 
 ---
