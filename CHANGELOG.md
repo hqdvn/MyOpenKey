@@ -13,6 +13,8 @@ Dự án mã nguồn mở độc lập tại [github.com/hqdvn/MyOpenKey](https:
   - Người dùng vừa bật công tắc, MyOpenKey tự kích hoạt menu bar và engine gõ ngay lập tức, không cần khởi động lại app hay nhấn mở lại.
 - **Sửa lỗi "Kiểm tra cập nhật" lần đầu không phản hồi:**
   - Khởi tạo sớm Sparkle Controller ngay khi app mở, đưa việc hiển thị UI vào chế độ RunLoop mặc định để Menu Bar đóng hẳn và tự động thử lại sau 300ms nếu updater chưa kịp hoàn thành chu kỳ khởi tạo.
+- **Đồng bộ thương hiệu MyOpenKey:**
+  - Cập nhật dòng *"Tạm tắt OpenKey bằng phím ⌘"* thành *"Tạm tắt MyOpenKey bằng phím ⌘"* trong tab Tiện ích của Bảng điều khiển và đồng bộ toàn bộ tooltip trong Storyboard.
 - **Lưu ý khi cập nhật từ bản cũ:** do đổi chứng chỉ ký, macOS sẽ yêu cầu **cấp lại quyền Trợ năng (Accessibility) một lần duy nhất**. Các bản sau giữ nguyên quyền.
 - Đổi nhánh chính của kho mã từ `master` sang `main`; Sparkle và kiểm tra phiên bản dùng đường dẫn mới.
 

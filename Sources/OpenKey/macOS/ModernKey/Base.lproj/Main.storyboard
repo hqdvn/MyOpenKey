@@ -1082,7 +1082,7 @@ DQ
                                                 <action selector="onUpperCaseFirstChar:" target="XfG-lQ-9wD" id="QFl-JY-GEA"/>
                                             </connections>
                                         </switch>
-                                        <textField focusRingType="none" horizontalHuggingPriority="249" verticalHuggingPriority="750" toolTip="Bạn đang sử dụng Safari và dùng chế độ gõ Tiếng Việt, bạn chuyển qua Terminal và chuyển chế độ gõ qua Tiếng Anh, OpenKey sẽ tự ghi nhớ thao tác cho bạn, khi bạn chuyển về lại Safari, OpenKey sẽ tự chuyển sang chế độ Tiếng Việt, sau đó nếu lại quay lại Terminal, OpenKey cũng sẽ tự đổi qua chế độ Tiếng Anh" translatesAutoresizingMaskIntoConstraints="NO" id="okU-44-lay">
+                                        <textField focusRingType="none" horizontalHuggingPriority="249" verticalHuggingPriority="750" toolTip="Bạn đang sử dụng Safari và dùng chế độ gõ Tiếng Việt, bạn chuyển qua Terminal và chuyển chế độ gõ qua Tiếng Anh, MyOpenKey sẽ tự ghi nhớ thao tác cho bạn, khi bạn chuyển về lại Safari, MyOpenKey sẽ tự chuyển sang chế độ Tiếng Việt, sau đó nếu lại quay lại Terminal, MyOpenKey cũng sẽ tự đổi qua chế độ Tiếng Anh" translatesAutoresizingMaskIntoConstraints="NO" id="okU-44-lay">
                                             <rect key="frame" x="16" y="0.0" width="400" height="16"/>
                                             <textFieldCell key="cell" lineBreakMode="truncatingTail" title="Chuyển chế độ thông minh" id="OF9-V8-caS">
                                                 <font key="font" metaFont="system"/>
@@ -1090,14 +1090,14 @@ DQ
                                                 <color key="backgroundColor" name="textBackgroundColor" catalog="System" colorSpace="catalog"/>
                                             </textFieldCell>
                                         </textField>
-                                        <switch horizontalHuggingPriority="750" verticalHuggingPriority="750" toolTip="Bạn đang sử dụng Safari và dùng chế độ gõ Tiếng Việt, bạn chuyển qua Terminal và chuyển chế độ gõ qua Tiếng Anh, OpenKey sẽ tự ghi nhớ thao tác cho bạn, khi bạn chuyển về lại Safari, OpenKey sẽ tự chuyển sang chế độ Tiếng Việt, sau đó nếu lại quay lại Terminal, OpenKey cũng sẽ tự đổi qua chế độ Tiếng Anh&quot; baseWritingDirection=&quot;leftToRight&quot; alignment=&quot;left" translatesAutoresizingMaskIntoConstraints="NO" id="YGb-a8-1Lb">
+                                        <switch horizontalHuggingPriority="750" verticalHuggingPriority="750" toolTip="Bạn đang sử dụng Safari và dùng chế độ gõ Tiếng Việt, bạn chuyển qua Terminal và chuyển chế độ gõ qua Tiếng Anh, MyOpenKey sẽ tự ghi nhớ thao tác cho bạn, khi bạn chuyển về lại Safari, MyOpenKey sẽ tự chuyển sang chế độ Tiếng Việt, sau đó nếu lại quay lại Terminal, MyOpenKey cũng sẽ tự đổi qua chế độ Tiếng Anh&quot; baseWritingDirection=&quot;leftToRight&quot; alignment=&quot;left" translatesAutoresizingMaskIntoConstraints="NO" id="YGb-a8-1Lb">
                                             <rect key="frame" x="460" y="0.0" width="42" height="25"/>
                                             <accessibility description="Chuyển chế độ thông minh"/>
                                             <connections>
                                                 <action selector="onAutoRememberSwitchKey:" target="XfG-lQ-9wD" id="Ghi-2i-Y6n"/>
                                             </connections>
                                         </switch>
-                                        <textField focusRingType="none" horizontalHuggingPriority="249" verticalHuggingPriority="750" toolTip="OpenKey sẽ tự động ghi nhớ bạn đã dùng bảng mã nào cho ứng dụng nào, để lần sau khi chuyển qua ứng dụng đó, OpenKey sẽ tự động chuyển sang bảng mã đó cho bạn. Rất thích hợp cho các ứng dụng kỹ thuật như Photoshop, CAD,..." translatesAutoresizingMaskIntoConstraints="NO" id="okU-50-lay">
+                                        <textField focusRingType="none" horizontalHuggingPriority="249" verticalHuggingPriority="750" toolTip="MyOpenKey sẽ tự động ghi nhớ bạn đã dùng bảng mã nào cho ứng dụng nào, để lần sau khi chuyển qua ứng dụng đó, MyOpenKey sẽ tự động chuyển sang bảng mã đó cho bạn. Rất thích hợp cho các ứng dụng kỹ thuật như Photoshop, CAD,..." translatesAutoresizingMaskIntoConstraints="NO" id="okU-50-lay">
                                             <rect key="frame" x="16" y="0.0" width="400" height="16"/>
                                             <textFieldCell key="cell" lineBreakMode="truncatingTail" title="Tự ghi nhớ bảng mã theo ứng dụng" id="Zic-gx-wRR">
                                                 <font key="font" metaFont="system"/>
@@ -1105,14 +1105,14 @@ DQ
                                                 <color key="backgroundColor" name="textBackgroundColor" catalog="System" colorSpace="catalog"/>
                                             </textFieldCell>
                                         </textField>
-                                        <switch horizontalHuggingPriority="750" verticalHuggingPriority="750" toolTip="OpenKey sẽ tự động ghi nhớ bạn đã dùng bảng mã nào cho ứng dụng nào, để lần sau khi chuyển qua ứng dụng đó, OpenKey sẽ tự động chuyển sang bảng mã đó cho bạn. Rất thích hợp cho các ứng dụng kỹ thuật như Photoshop, CAD,...&quot; baseWritingDirection=&quot;leftToRight&quot; alignment=&quot;left" translatesAutoresizingMaskIntoConstraints="NO" id="8zV-2v-Cyt">
+                                        <switch horizontalHuggingPriority="750" verticalHuggingPriority="750" toolTip="MyOpenKey sẽ tự động ghi nhớ bạn đã dùng bảng mã nào cho ứng dụng nào, để lần sau khi chuyển qua ứng dụng đó, MyOpenKey sẽ tự động chuyển sang bảng mã đó cho bạn. Rất thích hợp cho các ứng dụng kỹ thuật như Photoshop, CAD,...&quot; baseWritingDirection=&quot;leftToRight&quot; alignment=&quot;left" translatesAutoresizingMaskIntoConstraints="NO" id="8zV-2v-Cyt">
                                             <rect key="frame" x="460" y="0.0" width="42" height="25"/>
                                             <accessibility description="Tự ghi nhớ bảng mã theo ứng dụng"/>
                                             <connections>
                                                 <action selector="onRememberTableCode:" target="XfG-lQ-9wD" id="WAd-dy-sZy"/>
                                             </connections>
                                         </switch>
-                                        <textField focusRingType="none" horizontalHuggingPriority="249" verticalHuggingPriority="750" toolTip="OpenKey sẽ tự động tắt gõ tiếng Việt khi bộ gõ hệ thống không phải là tiếng Anh." translatesAutoresizingMaskIntoConstraints="NO" id="okU-56-lay">
+                                        <textField focusRingType="none" horizontalHuggingPriority="249" verticalHuggingPriority="750" toolTip="MyOpenKey sẽ tự động tắt gõ tiếng Việt khi bộ gõ hệ thống không phải là tiếng Anh." translatesAutoresizingMaskIntoConstraints="NO" id="okU-56-lay">
                                             <rect key="frame" x="16" y="0.0" width="400" height="16"/>
                                             <textFieldCell key="cell" lineBreakMode="truncatingTail" title="Tắt tiếng Việt khi bộ gõ hệ thống khác tiếng Anh" id="uew-J8-1eo">
                                                 <font key="font" metaFont="system"/>
@@ -1120,24 +1120,24 @@ DQ
                                                 <color key="backgroundColor" name="textBackgroundColor" catalog="System" colorSpace="catalog"/>
                                             </textFieldCell>
                                         </textField>
-                                        <switch horizontalHuggingPriority="750" verticalHuggingPriority="750" toolTip="OpenKey sẽ tự động tắt gõ tiếng Việt khi bộ gõ hệ thống không phải là tiếng Anh.&quot; baseWritingDirection=&quot;leftToRight&quot; alignment=&quot;left" translatesAutoresizingMaskIntoConstraints="NO" id="ej5-aI-sDd">
+                                        <switch horizontalHuggingPriority="750" verticalHuggingPriority="750" toolTip="MyOpenKey sẽ tự động tắt gõ tiếng Việt khi bộ gõ hệ thống không phải là tiếng Anh.&quot; baseWritingDirection=&quot;leftToRight&quot; alignment=&quot;left" translatesAutoresizingMaskIntoConstraints="NO" id="ej5-aI-sDd">
                                             <rect key="frame" x="460" y="0.0" width="42" height="25"/>
                                             <accessibility description="Tắt tiếng Việt khi bộ gõ hệ thống khác tiếng Anh"/>
                                             <connections>
                                                 <action selector="onOtherLanguage:" target="XfG-lQ-9wD" id="ttX-Rc-ZfX"/>
                                             </connections>
                                         </switch>
-                                        <textField focusRingType="none" horizontalHuggingPriority="249" verticalHuggingPriority="750" toolTip="Bằng cách bấm phím Command, OpenKey sẽ tạm ngừng hoạt động cho tới khi bạn gõ 1 từ mới." translatesAutoresizingMaskIntoConstraints="NO" id="okU-62-lay">
+                                        <textField focusRingType="none" horizontalHuggingPriority="249" verticalHuggingPriority="750" toolTip="Bằng cách bấm phím Command, MyOpenKey sẽ tạm ngừng hoạt động cho tới khi bạn gõ 1 từ mới." translatesAutoresizingMaskIntoConstraints="NO" id="okU-62-lay">
                                             <rect key="frame" x="16" y="0.0" width="400" height="16"/>
-                                            <textFieldCell key="cell" lineBreakMode="truncatingTail" title="Tạm tắt OpenKey bằng phím ⌘" id="hx0-Hk-EOx">
+                                            <textFieldCell key="cell" lineBreakMode="truncatingTail" title="Tạm tắt MyOpenKey bằng phím ⌘" id="hx0-Hk-EOx">
                                                 <font key="font" metaFont="system"/>
                                                 <color key="textColor" name="labelColor" catalog="System" colorSpace="catalog"/>
                                                 <color key="backgroundColor" name="textBackgroundColor" catalog="System" colorSpace="catalog"/>
                                             </textFieldCell>
                                         </textField>
-                                        <switch horizontalHuggingPriority="750" verticalHuggingPriority="750" toolTip="Bằng cách bấm phím Command, OpenKey sẽ tạm ngừng hoạt động cho tới khi bạn gõ 1 từ mới.&quot; baseWritingDirection=&quot;leftToRight&quot; alignment=&quot;left" translatesAutoresizingMaskIntoConstraints="NO" id="1eA-ed-0Ov">
+                                        <switch horizontalHuggingPriority="750" verticalHuggingPriority="750" toolTip="Bằng cách bấm phím Command, MyOpenKey sẽ tạm ngừng hoạt động cho tới khi bạn gõ 1 từ mới.&quot; baseWritingDirection=&quot;leftToRight&quot; alignment=&quot;left" translatesAutoresizingMaskIntoConstraints="NO" id="1eA-ed-0Ov">
                                             <rect key="frame" x="460" y="0.0" width="42" height="25"/>
-                                            <accessibility description="Tạm tắt OpenKey bằng phím ⌘"/>
+                                            <accessibility description="Tạm tắt MyOpenKey bằng phím ⌘"/>
                                             <connections>
                                                 <action selector="onTempOffOpenKeyByHotKey:" target="XfG-lQ-9wD" id="a4t-3a-rdr"/>
                                             </connections>
@@ -1461,7 +1461,7 @@ DQ
                                                 <action selector="onShowUIOnStartup:" target="XfG-lQ-9wD" id="6mZ-mG-7Im"/>
                                             </connections>
                                         </switch>
-                                        <textField focusRingType="none" horizontalHuggingPriority="249" verticalHuggingPriority="750" toolTip="Hiện biểu tượng OpenKey trên thanh Dock của máy bạn" translatesAutoresizingMaskIntoConstraints="NO" id="okU-138-lay">
+                                        <textField focusRingType="none" horizontalHuggingPriority="249" verticalHuggingPriority="750" toolTip="Hiện biểu tượng MyOpenKey trên thanh Dock của máy bạn" translatesAutoresizingMaskIntoConstraints="NO" id="okU-138-lay">
                                             <rect key="frame" x="16" y="0.0" width="400" height="16"/>
                                             <textFieldCell key="cell" lineBreakMode="truncatingTail" title="Hiện biểu tượng trên thanh Dock" id="mXT-yM-DNm">
                                                 <font key="font" metaFont="system"/>
@@ -1469,7 +1469,7 @@ DQ
                                                 <color key="backgroundColor" name="textBackgroundColor" catalog="System" colorSpace="catalog"/>
                                             </textFieldCell>
                                         </textField>
-                                        <switch horizontalHuggingPriority="750" verticalHuggingPriority="750" toolTip="Hiện biểu tượng OpenKey trên thanh Dock của máy bạn&quot; baseWritingDirection=&quot;leftToRight&quot; alignment=&quot;left" translatesAutoresizingMaskIntoConstraints="NO" id="5XE-HO-9o0">
+                                        <switch horizontalHuggingPriority="750" verticalHuggingPriority="750" toolTip="Hiện biểu tượng MyOpenKey trên thanh Dock của máy bạn&quot; baseWritingDirection=&quot;leftToRight&quot; alignment=&quot;left" translatesAutoresizingMaskIntoConstraints="NO" id="5XE-HO-9o0">
                                             <rect key="frame" x="460" y="0.0" width="42" height="25"/>
                                             <accessibility description="Hiện biểu tượng trên thanh Dock"/>
                                             <connections>
@@ -1552,7 +1552,7 @@ DQ
                                                 <color key="backgroundColor" name="textBackgroundColor" catalog="System" colorSpace="catalog"/>
                                             </textFieldCell>
                                         </textField>
-                                        <textField focusRingType="none" horizontalHuggingPriority="249" verticalHuggingPriority="750" toolTip="Tự động kiểm tra phiên bản mới nhất mỗi khi khởi chạy OpenKey" translatesAutoresizingMaskIntoConstraints="NO" id="okU-176-lay">
+                                        <textField focusRingType="none" horizontalHuggingPriority="249" verticalHuggingPriority="750" toolTip="Tự động kiểm tra phiên bản mới nhất mỗi khi khởi chạy MyOpenKey" translatesAutoresizingMaskIntoConstraints="NO" id="okU-176-lay">
                                             <rect key="frame" x="16" y="0.0" width="400" height="16"/>
                                             <textFieldCell key="cell" lineBreakMode="truncatingTail" title="Tự động kiểm tra cập nhật" id="Yxn-RW-l3x">
                                                 <font key="font" metaFont="system"/>
@@ -1560,14 +1560,14 @@ DQ
                                                 <color key="backgroundColor" name="textBackgroundColor" catalog="System" colorSpace="catalog"/>
                                             </textFieldCell>
                                         </textField>
-                                        <switch horizontalHuggingPriority="750" verticalHuggingPriority="750" toolTip="Tự động kiểm tra phiên bản mới nhất mỗi khi khởi chạy OpenKey&quot; baseWritingDirection=&quot;leftToRight&quot; alignment=&quot;left" translatesAutoresizingMaskIntoConstraints="NO" id="oZr-h6-YZJ">
+                                        <switch horizontalHuggingPriority="750" verticalHuggingPriority="750" toolTip="Tự động kiểm tra phiên bản mới nhất mỗi khi khởi chạy MyOpenKey&quot; baseWritingDirection=&quot;leftToRight&quot; alignment=&quot;left" translatesAutoresizingMaskIntoConstraints="NO" id="oZr-h6-YZJ">
                                             <rect key="frame" x="460" y="0.0" width="42" height="25"/>
                                             <accessibility description="Tự động kiểm tra cập nhật"/>
                                             <connections>
                                                 <action selector="onCheckNewVersionOnStartup:" target="XfG-lQ-9wD" id="o68-VP-UjG"/>
                                             </connections>
                                         </switch>
-                                        <button toolTip="Bấm vào đây để kiểm tra phiên bản mới của OpenKey" verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="ZuJ-Ke-7Qg">
+                                        <button toolTip="Bấm vào đây để kiểm tra phiên bản mới của MyOpenKey" verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="ZuJ-Ke-7Qg">
                                             <rect key="frame" x="279" y="47" width="154" height="32"/>
                                             <buttonCell key="cell" type="push" title="Kiểm tra cập nhật..." bezelStyle="rounded" alignment="center" borderStyle="border" imageScaling="proportionallyDown" inset="2" id="GQD-eQ-FpN">
                                                 <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>

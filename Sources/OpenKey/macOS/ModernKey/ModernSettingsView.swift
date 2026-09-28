@@ -556,7 +556,7 @@ struct GeneralTabView: View {
 
                 Divider().opacity(0.4)
 
-                SettingRow("Tạm tắt OpenKey bằng phím ⌘", subtitle: "Nhấn Command để tạm dừng bỏ dấu cho từ hiện tại") {
+                SettingRow("Tạm tắt MyOpenKey bằng phím ⌘", subtitle: "Nhấn Command để tạm dừng bỏ dấu cho từ hiện tại") {
                     Toggle("", isOn: Binding(
                         get: { state.tempOffOpenKey },
                         set: { state.tempOffOpenKey = $0; state.save(\.tempOffOpenKey, value: $0) }
