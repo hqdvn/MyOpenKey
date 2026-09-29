@@ -5,12 +5,12 @@
 </p>
 
 <p align="center">
-  <strong>Bộ gõ tiếng Việt hiện đại, thanh lịch và mượt mà dành riêng cho macOS.</strong>
+  <strong>Bộ gõ tiếng Việt nhanh, ổn định và dễ dùng cho macOS.</strong>
 </p>
 
 <p align="center">
   <a href="https://github.com/hqdvn/MyOpenKey/releases/latest"><img src="https://img.shields.io/github/v/release/hqdvn/MyOpenKey?color=007AFF&label=Phi%C3%AAn%20b%E1%BA%A3n" alt="Release"></a>
-  <img src="https://img.shields.io/badge/macOS-12.0%2B-blue?logo=apple" alt="macOS 12+">
+  <img src="https://img.shields.io/badge/macOS-13.0%2B-blue?logo=apple" alt="macOS 13+">
   <img src="https://img.shields.io/badge/Ki%E1%BA%BFn%20tr%C3%BAc-Universal%20(Apple%20Silicon%20%26%20Intel)-success" alt="Architecture">
   <a href="LICENSE"><img src="https://img.shields.io/badge/Gi%E1%BA%A5y%20ph%C3%A9p-GNU%20GPLv3-orange" alt="License"></a>
   <a href="https://hqd.vn"><img src="https://img.shields.io/badge/T%C3%A1c%20gi%E1%BA%A3-hqd.vn-black" alt="Author"></a>
@@ -18,40 +18,18 @@
 
 ---
 
-## ✨ Điểm nổi bật của MyOpenKey
+MyOpenKey là bộ gõ tiếng Việt mã nguồn mở cho macOS (yêu cầu macOS 13 Ventura trở lên). Ứng dụng tập trung vào sự ổn định khi nhập liệu hàng ngày, khắc phục lỗi nhảy chữ, mất chữ và xung đột với các ứng dụng hệ thống.
 
-**MyOpenKey** là phiên bản cải tiến toàn diện được tái thiết kế dành riêng cho người dùng Mac thế hệ mới (macOS 12 Monterey, macOS 13 Ventura, macOS 14 Sonoma, macOS 15 Sequoia và mới hơn):
+## ✨ Điểm nổi bật
 
-### 🎨 1. Giao diện Bảng điều khiển chuẩn hiện đại
-- Được xây dựng hoàn toàn bằng **SwiftUI** theo phong cách **Inset-Grouped Cards** tinh tế.
-- Từng tính năng đều có tiêu đề rõ ràng kèm phụ đề giải thích chi tiết, không còn giấu trong tooltip.
-- Biểu tượng Menu bar thế hệ mới: hỗ trợ cả **màu gradient xanh cyan nổi bật** lẫn **chế độ đơn sắc hiện đại (`Template`)** tự động thích ứng hoàn hảo với Dark Mode và Light Mode của macOS.
-- Hỗ trợ đầy đủ **VoiceOver** và khả năng điều hướng bàn phím chuẩn hệ sinh thái Apple.
+* **Gõ ổn định, không kẹt phím:** Khắc phục lỗi mất chữ khi gõ nhanh trong Spotlight, Alfred, thanh địa chỉ trình duyệt và Microsoft Excel. Tự kết nối lại bộ gõ ngay sau khi máy thức dậy từ chế độ Sleep.
+* **Chuyển chế độ bằng phím Fn (Globe):** Đổi nhanh giữa Tiếng Việt và Tiếng Anh chỉ với 1 lần nhấn phím `Fn` trên bàn phím Mac, hoặc dùng các tổ hợp quen thuộc (`⌥ Option + Z`, `⌃ Control + Space`, `⌘ Command + ⇧ Shift`).
+* **Tự động chuyển chế độ theo ứng dụng (App Exclusion):** Tự chuyển sang tiếng Anh khi mở Terminal, VS Code hay game; tự quay lại tiếng Việt khi về trình duyệt hoặc ứng dụng văn phòng.
+* **Giao diện trực quan:** Bảng điều khiển rõ ràng, dễ thiết lập, hỗ trợ đầy đủ Dark Mode và biểu tượng thích ứng trên thanh Menu bar.
+* **Công cụ chuyển mã & Gõ tắt:** Quản lý phím tắt gõ tắt không giới hạn độ dài. Chuyển đổi nhanh giữa các bảng mã (Unicode, TCVN3, VNI) trực tiếp từ clipboard.
+* **Khởi động cùng hệ thống:** Quản lý tự khởi động khi đăng nhập thông qua cơ chế chuẩn của macOS trong phần Cài đặt hệ thống.
+* **Tự động cập nhật:** Tích hợp kiểm tra và cập nhật bản mới an toàn, nhanh chóng ngay trong ứng dụng.
 
-### ⚡ 2. Ổn định tối đa & Chống đơ phím
-- **Tự động kết nối lại EventTap**: tự bật lại kết nối bàn phím ngay khi macOS ngắt EventTap (timeout, secure input), khi máy thức dậy sau Sleep hoặc khi chuyển lại phiên người dùng; thêm bộ giám sát dự phòng 5 giây để máy không bị đánh thức liên tục khi rảnh.
-- **Gõ mượt trong Spotlight & Alfred**: sửa trực tiếp ô nhập qua Accessibility API thay vì gửi Backspace giả, không còn mất chữ khi gõ nhanh cạnh gợi ý tự động (hỗ trợ cả Spotlight mới trên macOS 26+).
-- **Cải thiện độ ổn định Backspace**: Cấp phát sự kiện Backspace mới cho mỗi thao tác gửi (`PostBackspaceEvent`), khắc phục lỗi nghẽn hàng đợi phím trên Apple Mail và các ứng dụng WebKit.
-- **Giảm tải sự kiện thừa**: Bỏ hook sự kiện kéo chuột (`MouseDragged`) khỏi bộ lắng nghe để tiết kiệm tài nguyên xử lý.
-- **Xử lý đa màn hình & Spaces**: Bảng điều khiển tự động di chuyển đến Desktop/Space đang hoạt động khi mở từ Menu bar.
-
-### 🌐 3. Hỗ trợ phím chuyển nhanh 🌐 Fn (Globe)
-- Hỗ trợ chuyển đổi nhanh Tiếng Việt $\leftrightarrow$ English chỉ với **1 lần nhấn phím 🌐 Fn** trên các bàn phím Mac đời mới (tương tự như trải nghiệm của bộ gõ Apple mặc định).
-- Đi kèm các tổ hợp phím tắt tiêu chuẩn: `⌥ Option + Z`, `⌃ Control + ⇧ Shift`, `⌘ Command + ⇧ Shift`, `⌃ Control + Space`,...
-
-### 🛡️ 4. Danh sách loại trừ ứng dụng (App Exclusion)
-- Cho phép bạn tự thêm các ứng dụng (Terminal, iTerm2, VS Code, Game...) vào danh sách loại trừ trong tab Hệ thống.
-- Khi chuyển sang ứng dụng trong danh sách, MyOpenKey tự động đổi sang **English (E)**; khi chuyển về ứng dụng bình thường, app sẽ tự khôi phục lại **Tiếng Việt (V)**.
-
-### 🔄 5. Khởi động cùng hệ thống (`SMAppService`)
-- Hỗ trợ đăng ký khởi động cùng hệ thống thông qua kiến trúc native `SMAppService` trên macOS 13 (Ventura) trở lên, xuất hiện minh bạch trong *System Settings ➔ General ➔ Login Items*. (Lưu ý: trên macOS 12 Monterey, tính năng khởi động cùng máy chưa khả dụng do hệ thống yêu cầu `SMAppService` native).
-
-### 🔀 6. Công cụ chuyển mã & Gõ tắt hiện đại
-- **Công cụ chuyển mã (Convert Tool)**: Xây dựng hoàn toàn bằng SwiftUI với Inset-Grouped cards, hỗ trợ đảo chiều bảng mã 1-click, tùy chọn đổi hoa/thường, bỏ dấu tiếng Việt, gán phím tắt chuyển mã clipboard tức thì.
-- **Thiết lập gõ tắt (Macro Manager)**: Tìm kiếm thời gian thực, thêm/sửa từ gõ tắt nhanh, nạp và xuất file định nghĩa linh hoạt.
-
-### 🚀 7. Tự động cập nhật 1-click (Sparkle 2)
-- Tích hợp framework Sparkle 2 (Ed25519) an toàn, tự động kiểm tra bản mới khi khởi động và hỗ trợ cập nhật 1-click trực tiếp ngay trong ứng dụng với giao diện tiếng Việt bản địa hóa hoàn chỉnh.
 ---
 
 ## 📸 Giao diện ứng dụng
@@ -69,38 +47,36 @@
 <p align="center">
   <img src="docs/images/settings-system.png" width="48%" alt="Cài đặt hệ thống & Loại trừ ứng dụng" />
 </p>
+
 ---
 
 ## ⌨️ Kiểu gõ & Bảng mã hỗ trợ
 
 - **Kiểu gõ:** Telex, VNI, Simple Telex 1, Simple Telex 2.
-- **Bảng mã:** Unicode dựng sẵn, TCVN3 (ABC), VNI Windows, Unicode tổ hợp, Vietnamese Locale CP 1258.
+- **Bảng mã:** Unicode dựng sẵn, Unicode tổ hợp, TCVN3 (ABC), VNI Windows, Vietnamese Locale CP 1258.
 - **Tính năng mở rộng:**
   - Đặt dấu kiểu mới (`oà`, `uý` thay vì `òa`, `úy`).
-  - Gõ nhanh phụ âm ghép (`cc` $\rightarrow$ `ch`, `gg` $\rightarrow$ `gi`, `kk` $\rightarrow$ `kh`, `nn` $\rightarrow$ `ng`, `qq` $\rightarrow$ `qu`, `pp` $\rightarrow$ `ph`, `tt` $\rightarrow$ `th`).
-  - Gõ tắt phụ âm đầu (`f` $\rightarrow$ `ph`, `j` $\rightarrow$ `gi`, `w` $\rightarrow$ `qu`) và phụ âm cuối (`g` $\rightarrow$ `ng`, `h` $\rightarrow$ `nh`, `k` $\rightarrow$ `ch`).
-  - Bảng gõ tắt không giới hạn độ dài ký tự, hỗ trợ tự động viết hoa thông minh theo phím tắt (`ko` $\rightarrow$ `không`, `Ko` $\rightarrow$ `Không`, `KO` $\rightarrow$ `KHÔNG`).
+  - Gõ nhanh phụ âm ghép (`cc` → `ch`, `gg` → `gi`, `kk` → `kh`, `nn` → `ng`, `qq` → `qu`, `pp` → `ph`, `tt` → `th`).
+  - Gõ tắt phụ âm đầu (`f` → `ph`, `j` → `gi`, `w` → `qu`) và phụ âm cuối (`g` → `ng`, `h` → `nh`, `k` → `ch`).
+  - Tự động viết hoa thông minh theo từ viết tắt (`ko` → `không`, `Ko` → `Không`, `KO` → `KHÔNG`).
   - Sửa lỗi gợi ý tự động (autocomplete) trên thanh địa chỉ trình duyệt Chrome, Edge, Safari và Microsoft Excel.
 
 ---
 
 ## 📥 Cài đặt
 
-1. Tải về file `.dmg` hoặc `.zip` của phiên bản mới nhất tại [MyOpenKey Releases](https://github.com/hqdvn/MyOpenKey/releases/latest).
-2. Mở file `.dmg` ➔ Kéo thả biểu tượng **MyOpenKey** vào thư mục **Applications**, rồi mở ứng dụng.
-3. **Cấp quyền Trợ năng (Accessibility)**:
-   - Khi mở lên lần đầu, app tự mở mục *Trợ năng (Accessibility)* trong Cài đặt hệ thống.
-   - Bật công tắc cho phép **MyOpenKey** — ứng dụng sẽ tự động kích hoạt và bắt đầu gõ được ngay, không cần mở lại app.
-   - Quyền được giữ nguyên qua các bản tự động cập nhật.
+1. Tải bản phát hành mới nhất tại [MyOpenKey Releases](https://github.com/hqdvn/MyOpenKey/releases/latest) (chọn file `.dmg`).
+2. Mở file `.dmg` và kéo biểu tượng **MyOpenKey** vào thư mục **Applications**.
+3. Mở ứng dụng và bật quyền **Trợ năng (Accessibility)** trong *Cài đặt hệ thống* theo hướng dẫn để sử dụng.
 
 ---
 
 ## 🛠️ Biên dịch từ mã nguồn
 
-MyOpenKey hỗ trợ biên dịch trực tiếp bằng Xcode 14 trở lên trên cả chip Apple Silicon (M1/M2/M3/M4) lẫn Intel:
+Yêu cầu Xcode 14 trở lên trên macOS 13+. Hỗ trợ cả chip Apple Silicon (M-series) lẫn Intel:
 
 ```bash
-# Clone kho mã nguồn
+# Clone mã nguồn
 git clone https://github.com/hqdvn/MyOpenKey.git
 cd MyOpenKey
 
@@ -109,11 +85,11 @@ xcodebuild -project Sources/OpenKey/macOS/OpenKey.xcodeproj \
   -scheme OpenKey -configuration Release -derivedDataPath build \
   CODE_SIGN_IDENTITY=- CODE_SIGN_STYLE=Manual DEVELOPMENT_TEAM= build
 
-# Cài đặt vào thư mục Applications
+# Cài đặt vào Applications
 cp -R build/Build/Products/Release/MyOpenKey.app /Applications/
 ```
 
-Xem thêm hướng dẫn chi tiết tại [macOS_Build.md](macOS_Build.md).
+Chi tiết xem tại [macOS_Build.md](macOS_Build.md).
 
 ---
 
@@ -128,5 +104,5 @@ Xem thêm hướng dẫn chi tiết tại [macOS_Build.md](macOS_Build.md).
 
 ## 📜 Ghi nhận & Bản quyền
 
-- MyOpenKey được phát triển và tối ưu hóa dựa trên nền tảng bộ máy gõ mã nguồn mở [OpenKey](https://github.com/tuyenvm/OpenKey) của tác giả **Mai Vũ Tuyên** (© 2019).
-- Toàn bộ dự án được phát hành công khai và minh bạch theo giấy phép **[GNU General Public License v3.0 (GPLv3)](LICENSE)**.
+- MyOpenKey được phát triển và tối ưu hóa dựa trên nền tảng bộ gõ mã nguồn mở [OpenKey](https://github.com/tuyenvm/OpenKey) của tác giả **Mai Vũ Tuyên** (© 2019).
+- Phát hành công khai theo giấy phép **[GNU General Public License v3.0 (GPLv3)](LICENSE)**.
