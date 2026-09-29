@@ -8,7 +8,7 @@ Tài liệu này hướng dẫn cách tự biên dịch **MyOpenKey** từ mã n
 
 - **Hệ điều hành:** macOS 13.0 (Ventura) trở lên.
 - **Công cụ:** Xcode 14.0 trở lên (hỗ trợ đầy đủ Xcode 15, 16 và mới hơn).
-- **Kiến trúc:** Universal Binary (chạy native trên cả chip Apple Silicon M-series và Intel x86_64).
+- **Kiến trúc:** Universal Binary (chạy native trên cả chip Apple Silicon và Intel x86_64).
 
 ---
 

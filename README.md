@@ -73,7 +73,7 @@ MyOpenKey là bộ gõ tiếng Việt mã nguồn mở cho macOS (yêu cầu mac
 
 ## 🛠️ Biên dịch từ mã nguồn
 
-Yêu cầu Xcode 14 trở lên trên macOS 13+. Hỗ trợ cả chip Apple Silicon (M-series) lẫn Intel:
+Yêu cầu Xcode 14 trở lên trên macOS 13+. Hỗ trợ cả chip Apple Silicon lẫn Intel:
 
 ```bash
 # Clone mã nguồn
