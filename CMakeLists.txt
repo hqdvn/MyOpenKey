@@ -39,6 +39,7 @@ if(WIN32)
         Sources/OpenKey/win32/main.cpp
         Sources/OpenKey/win32/Hook.cpp
         Sources/OpenKey/win32/Settings.cpp
+        Sources/OpenKey/win32/SettingsDlg.cpp
         Sources/OpenKey/win32/resource.rc
         Sources/OpenKey/win32/app.manifest
     )
@@ -47,17 +48,24 @@ if(WIN32)
         Sources/OpenKey/macOS/ModernKey
         Sources/OpenKey/win32
     )
-    target_compile_definitions(MyOpenKey PRIVATE OPENKEY_WIN32_KEYS NOMINMAX WIN32_LEAN_AND_MEAN)
+    target_compile_definitions(MyOpenKey PRIVATE
+        OPENKEY_WIN32_KEYS
+        NOMINMAX
+        WIN32_LEAN_AND_MEAN
+        UNICODE
+        _UNICODE
+    )
     target_link_libraries(MyOpenKey PRIVATE
         openkey_engine
         user32
         shell32
         advapi32
         comctl32
+        comdlg32
         gdi32
     )
     if(MSVC)
-        target_compile_options(MyOpenKey PRIVATE /utf-8)
+        target_compile_options(MyOpenKey PRIVATE /utf-8 /W4)
         target_compile_definitions(MyOpenKey PRIVATE _SILENCE_CXX17_CODECVT_HEADER_DEPRECATION_WARNING)
     endif()
 endif()

@@ -41,13 +41,15 @@ Compression=lzma2/max
 SolidCompression=yes
 WizardStyle=modern
 CloseApplications=yes
+SetupIconFile=..\MyOpenKey.ico
+UninstallDisplayIcon={app}\MyOpenKey.exe
 
 [Languages]
 ; Official Inno Setup distribution only bundles English.isl; Vietnamese is unofficial.
 Name: "english"; MessagesFile: "compiler:Default.isl"
 
 [Tasks]
-Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{cm:AdditionalIcons}"; Flags: unchecked
+Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{cm:AdditionalIcons}"
 Name: "startup"; Description: "Khởi động cùng Windows"; GroupDescription: "Tùy chọn bổ sung:"
 
 [Files]

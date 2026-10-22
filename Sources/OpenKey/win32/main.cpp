@@ -2,13 +2,18 @@
 #include <shellapi.h>
 #include <commctrl.h>
 #include <cwchar>
+#include <vector>
 #include "Macro.h"
 #include "Hook.h"
 #include "Settings.h"
+#include "SettingsDlg.h"
+#include "resource.h"
 
 #define WM_TRAYICON (WM_APP + 1)
 #define TIMER_HOOK_HEALTH 101
+#define TIMER_TRAY_RETRY  102
 
+#define ID_TRAY_SETTINGS          1000
 #define ID_TRAY_VIETNAMESE        1001
 #define ID_TRAY_ENGLISH           1002
 #define ID_INPUT_TELEX            1010
@@ -28,9 +33,12 @@
 static const wchar_t* WINDOW_CLASS_NAME = L"MyOpenKey_MsgWndClass";
 static const wchar_t* MUTEX_NAME = L"MyOpenKey_SingleInstance_Mutex";
 
+static HINSTANCE s_hInstance = NULL;
 static HICON s_hIconV = NULL;
 static HICON s_hIconE = NULL;
 static UINT s_uTaskbarRestartMsg = 0;
+static bool s_trayAdded = false;
+static int s_trayRetryCount = 0;
 
 static HICON CreateTextIcon(wchar_t letter, COLORREF bgColor, COLORREF textColor) {
     int cx = GetSystemMetrics(SM_CXSMICON);
@@ -51,20 +59,22 @@ static HICON CreateTextIcon(wchar_t letter, COLORREF bgColor, COLORREF textColor
 
     void* pBits = nullptr;
     HBITMAP hbmColor = CreateDIBSection(hdcMem, &bi, DIB_RGB_COLORS, &pBits, NULL, 0);
-    HBITMAP hbmOld = (HBITMAP)SelectObject(hdcMem, hbmColor);
+    if (!hbmColor || !pBits) {
+        DeleteDC(hdcMem);
+        ReleaseDC(NULL, hdcScreen);
+        return NULL;
+    }
+    memset(pBits, 0, static_cast<size_t>(cx * cy) * sizeof(uint32_t));
 
-    // Rounded rectangle background
+    HBITMAP hbmOld = static_cast<HBITMAP>(SelectObject(hdcMem, hbmColor));
+
+    // Rounded rectangle shape
+    int corner = cx / 3;
+    if (corner < 2) corner = 2;
+    HRGN hRgn = CreateRoundRectRgn(0, 0, cx + 1, cy + 1, corner, corner);
     HBRUSH hBrushBg = CreateSolidBrush(bgColor);
-    HPEN hPenBg = CreatePen(PS_SOLID, 1, bgColor);
-    HGDIOBJ hOldBrush = SelectObject(hdcMem, hBrushBg);
-    HGDIOBJ hOldPen = SelectObject(hdcMem, hPenBg);
-
-    RoundRect(hdcMem, 0, 0, cx, cy, cx / 3, cy / 3);
-
-    SelectObject(hdcMem, hOldBrush);
-    SelectObject(hdcMem, hOldPen);
+    FillRgn(hdcMem, hRgn, hBrushBg);
     DeleteObject(hBrushBg);
-    DeleteObject(hPenBg);
 
     // Draw letter
     SetBkMode(hdcMem, TRANSPARENT);
@@ -74,7 +84,7 @@ static HICON CreateTextIcon(wchar_t letter, COLORREF bgColor, COLORREF textColor
     HFONT hFont = CreateFontW(fontHeight, 0, 0, 0, FW_BOLD, FALSE, FALSE, FALSE,
                               DEFAULT_CHARSET, OUT_DEFAULT_PRECIS, CLIP_DEFAULT_PRECIS,
                               CLEARTYPE_QUALITY, DEFAULT_PITCH | FF_SWISS, L"Segoe UI");
-    HFONT hOldFont = (HFONT)SelectObject(hdcMem, hFont);
+    HFONT hOldFont = static_cast<HFONT>(SelectObject(hdcMem, hFont));
 
     RECT rc = { 0, 0, cx, cy };
     wchar_t text[2] = { letter, 0 };
@@ -87,8 +97,28 @@ static HICON CreateTextIcon(wchar_t letter, COLORREF bgColor, COLORREF textColor
     DeleteDC(hdcMem);
     ReleaseDC(NULL, hdcScreen);
 
-    // Monochrome mask
-    HBITMAP hbmMask = CreateBitmap(cx, cy, 1, 1, NULL);
+    // Mask bitmap: 1bpp, DWORD-aligned stride.
+    // 0 = inside (opaque / uses color bitmap), 1 = outside (transparent).
+    int maskStride = ((cx + 31) / 32) * 4;
+    std::vector<BYTE> maskBits(static_cast<size_t>(maskStride * cy), 0xFF);
+
+    uint32_t* pixels = static_cast<uint32_t*>(pBits);
+    for (int y = 0; y < cy; ++y) {
+        for (int x = 0; x < cx; ++x) {
+            int idx = y * cx + x;
+            if (PtInRegion(hRgn, x, y)) {
+                pixels[idx] |= 0xFF000000; // Opaque alpha
+                int byteIdx = y * maskStride + (x / 8);
+                int bitIdx = 7 - (x % 8);
+                maskBits[static_cast<size_t>(byteIdx)] &= static_cast<BYTE>(~(1 << bitIdx));
+            } else {
+                pixels[idx] = 0; // Fully transparent
+            }
+        }
+    }
+    DeleteObject(hRgn);
+
+    HBITMAP hbmMask = CreateBitmap(cx, cy, 1, 1, maskBits.data());
 
     ICONINFO ii = {};
     ii.fIcon = TRUE;
@@ -110,7 +140,27 @@ static void SetTrayTip(NOTIFYICONDATAW& nid, const wchar_t* tip) {
     nid.szTip[(sizeof(nid.szTip) / sizeof(wchar_t)) - 1] = L'\0';
 }
 
+static bool AddTrayIcon(HWND hwnd) {
+    NOTIFYICONDATAW nid = {};
+    nid.cbSize = sizeof(NOTIFYICONDATAW);
+    nid.hWnd = hwnd;
+    nid.uID = 1;
+    nid.uFlags = NIF_ICON | NIF_MESSAGE | NIF_TIP;
+    nid.uCallbackMessage = WM_TRAYICON;
+    nid.hIcon = (vLanguage == 1) ? s_hIconV : s_hIconE;
+    SetTrayTip(nid, (vLanguage == 1) ? L"MyOpenKey - Tiếng Việt" : L"MyOpenKey - English");
+    if (Shell_NotifyIconW(NIM_ADD, &nid)) {
+        s_trayAdded = true;
+        return true;
+    }
+    return false;
+}
+
 static void UpdateTrayIcon(HWND hwnd) {
+    if (!s_trayAdded) {
+        AddTrayIcon(hwnd);
+        return;
+    }
     NOTIFYICONDATAW nid = {};
     nid.cbSize = sizeof(NOTIFYICONDATAW);
     nid.hWnd = hwnd;
@@ -121,29 +171,25 @@ static void UpdateTrayIcon(HWND hwnd) {
     Shell_NotifyIconW(NIM_MODIFY, &nid);
 }
 
-static void AddTrayIcon(HWND hwnd) {
-    NOTIFYICONDATAW nid = {};
-    nid.cbSize = sizeof(NOTIFYICONDATAW);
-    nid.hWnd = hwnd;
-    nid.uID = 1;
-    nid.uFlags = NIF_ICON | NIF_MESSAGE | NIF_TIP;
-    nid.uCallbackMessage = WM_TRAYICON;
-    nid.hIcon = (vLanguage == 1) ? s_hIconV : s_hIconE;
-    SetTrayTip(nid, (vLanguage == 1) ? L"MyOpenKey - Tiếng Việt" : L"MyOpenKey - English");
-    Shell_NotifyIconW(NIM_ADD, &nid);
-}
 static void RemoveTrayIcon(HWND hwnd) {
-    NOTIFYICONDATAW nid = {};
-    nid.cbSize = sizeof(NOTIFYICONDATAW);
-    nid.hWnd = hwnd;
-    nid.uID = 1;
-    Shell_NotifyIconW(NIM_DELETE, &nid);
+    if (s_trayAdded) {
+        NOTIFYICONDATAW nid = {};
+        nid.cbSize = sizeof(NOTIFYICONDATAW);
+        nid.hWnd = hwnd;
+        nid.uID = 1;
+        Shell_NotifyIconW(NIM_DELETE, &nid);
+        s_trayAdded = false;
+    }
 }
 
 static HMENU CreateContextMenu() {
     HMENU hMenu = CreatePopupMenu();
     HMENU hSubInput = CreatePopupMenu();
     HMENU hSubCode = CreatePopupMenu();
+
+    AppendMenuW(hMenu, MF_STRING, ID_TRAY_SETTINGS, L"Bảng điều khiển…");
+    SetMenuDefaultItem(hMenu, ID_TRAY_SETTINGS, FALSE);
+    AppendMenuW(hMenu, MF_SEPARATOR, 0, NULL);
 
     AppendMenuW(hMenu, MF_STRING | (vLanguage == 1 ? MF_CHECKED : MF_UNCHECKED), ID_TRAY_VIETNAMESE, L"Tiếng Việt (Ctrl+Shift)");
     AppendMenuW(hMenu, MF_STRING | (vLanguage == 0 ? MF_CHECKED : MF_UNCHECKED), ID_TRAY_ENGLISH, L"English");
@@ -153,14 +199,14 @@ static HMENU CreateContextMenu() {
     AppendMenuW(hSubInput, MF_STRING | (vInputType == 1 ? MF_CHECKED : MF_UNCHECKED), ID_INPUT_VNI, L"VNI");
     AppendMenuW(hSubInput, MF_STRING | (vInputType == 2 ? MF_CHECKED : MF_UNCHECKED), ID_INPUT_SIMPLETELEX1, L"Simple Telex 1");
     AppendMenuW(hSubInput, MF_STRING | (vInputType == 3 ? MF_CHECKED : MF_UNCHECKED), ID_INPUT_SIMPLETELEX2, L"Simple Telex 2");
-    AppendMenuW(hMenu, MF_POPUP, (UINT_PTR)hSubInput, L"Kiểu gõ");
+    AppendMenuW(hMenu, MF_POPUP, reinterpret_cast<UINT_PTR>(hSubInput), L"Kiểu gõ");
 
     AppendMenuW(hSubCode, MF_STRING | (vCodeTable == 0 ? MF_CHECKED : MF_UNCHECKED), ID_CODE_UNICODE, L"Unicode dựng sẵn");
     AppendMenuW(hSubCode, MF_STRING | (vCodeTable == 1 ? MF_CHECKED : MF_UNCHECKED), ID_CODE_TCVN3, L"TCVN3 (ABC)");
     AppendMenuW(hSubCode, MF_STRING | (vCodeTable == 2 ? MF_CHECKED : MF_UNCHECKED), ID_CODE_VNI, L"VNI Windows");
     AppendMenuW(hSubCode, MF_STRING | (vCodeTable == 3 ? MF_CHECKED : MF_UNCHECKED), ID_CODE_COMPOUND, L"Unicode tổ hợp");
     AppendMenuW(hSubCode, MF_STRING | (vCodeTable == 4 ? MF_CHECKED : MF_UNCHECKED), ID_CODE_CP1258, L"Vietnamese Locale (CP 1258)");
-    AppendMenuW(hMenu, MF_POPUP, (UINT_PTR)hSubCode, L"Bảng mã");
+    AppendMenuW(hMenu, MF_POPUP, reinterpret_cast<UINT_PTR>(hSubCode), L"Bảng mã");
 
     AppendMenuW(hMenu, MF_SEPARATOR, 0, NULL);
 
@@ -187,7 +233,11 @@ static void ShowContextMenu(HWND hwnd) {
 
 static LRESULT CALLBACK WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
     if (uMsg == s_uTaskbarRestartMsg && s_uTaskbarRestartMsg != 0) {
-        AddTrayIcon(hwnd);
+        s_trayAdded = false;
+        if (!AddTrayIcon(hwnd)) {
+            s_trayRetryCount = 0;
+            SetTimer(hwnd, TIMER_TRAY_RETRY, 1000, NULL);
+        }
         return 0;
     }
 
@@ -195,7 +245,10 @@ static LRESULT CALLBACK WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lPar
     case WM_CREATE:
         s_hIconV = CreateTextIcon(L'V', RGB(218, 41, 28), RGB(255, 255, 255));
         s_hIconE = CreateTextIcon(L'E', RGB(0, 120, 215), RGB(255, 255, 255));
-        AddTrayIcon(hwnd);
+        if (!AddTrayIcon(hwnd)) {
+            s_trayRetryCount = 0;
+            SetTimer(hwnd, TIMER_TRAY_RETRY, 1000, NULL);
+        }
         Hook::Install(hwnd);
         SetTimer(hwnd, TIMER_HOOK_HEALTH, 5000, NULL);
         return 0;
@@ -203,6 +256,11 @@ static LRESULT CALLBACK WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lPar
     case WM_TIMER:
         if (wParam == TIMER_HOOK_HEALTH) {
             Hook::CheckHealth();
+        } else if (wParam == TIMER_TRAY_RETRY) {
+            s_trayRetryCount++;
+            if (AddTrayIcon(hwnd) || s_trayRetryCount >= 30) {
+                KillTimer(hwnd, TIMER_TRAY_RETRY);
+            }
         }
         return 0;
 
@@ -212,8 +270,10 @@ static LRESULT CALLBACK WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lPar
         return 0;
 
     case WM_TRAYICON:
-        if (lParam == WM_LBUTTONUP || lParam == WM_LBUTTONDBLCLK) {
+        if (lParam == WM_LBUTTONUP) {
             Hook::SwitchLanguage();
+        } else if (lParam == WM_LBUTTONDBLCLK) {
+            SettingsDlg::Show(s_hInstance, hwnd);
         } else if (lParam == WM_RBUTTONUP || lParam == WM_CONTEXTMENU) {
             ShowContextMenu(hwnd);
         }
@@ -221,6 +281,10 @@ static LRESULT CALLBACK WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lPar
 
     case WM_COMMAND:
         switch (LOWORD(wParam)) {
+        case ID_TRAY_SETTINGS:
+            SettingsDlg::Show(s_hInstance, hwnd);
+            break;
+
         case ID_TRAY_VIETNAMESE:
             vLanguage = 1;
             UpdateTrayIcon(hwnd);
@@ -324,6 +388,7 @@ static LRESULT CALLBACK WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lPar
 
     case WM_DESTROY:
         KillTimer(hwnd, TIMER_HOOK_HEALTH);
+        KillTimer(hwnd, TIMER_TRAY_RETRY);
         RemoveTrayIcon(hwnd);
         Hook::Uninstall();
         if (s_hIconV) { DestroyIcon(s_hIconV); s_hIconV = NULL; }
@@ -340,6 +405,8 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine
     (void)pCmdLine;
     (void)nCmdShow;
 
+    s_hInstance = hInstance;
+
     // Single instance check
     HANDLE hMutex = CreateMutexW(NULL, TRUE, MUTEX_NAME);
     if (GetLastError() == ERROR_ALREADY_EXISTS) {
@@ -351,6 +418,12 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine
         return 0;
     }
 
+    // Common controls for Tab, ListView
+    INITCOMMONCONTROLSEX icex = {};
+    icex.dwSize = sizeof(INITCOMMONCONTROLSEX);
+    icex.dwICC = ICC_TAB_CLASSES | ICC_LISTVIEW_CLASSES | ICC_STANDARD_CLASSES;
+    InitCommonControlsEx(&icex);
+
     // Load persisted settings
     Settings::Load();
 
@@ -360,6 +433,10 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine
     wc.cbSize = sizeof(WNDCLASSEXW);
     wc.lpfnWndProc = WndProc;
     wc.hInstance = hInstance;
+    wc.hIcon = LoadIconW(hInstance, MAKEINTRESOURCEW(IDI_APPICON));
+    wc.hIconSm = static_cast<HICON>(LoadImageW(hInstance, MAKEINTRESOURCEW(IDI_APPICON), IMAGE_ICON,
+                                               GetSystemMetrics(SM_CXSMICON), GetSystemMetrics(SM_CYSMICON),
+                                               LR_DEFAULTCOLOR));
     wc.lpszClassName = WINDOW_CLASS_NAME;
 
     if (!RegisterClassExW(&wc)) {
@@ -378,6 +455,10 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine
 
     MSG msg;
     while (GetMessageW(&msg, NULL, 0, 0)) {
+        HWND hDlg = SettingsDlg::GetHwnd();
+        if (hDlg && IsWindow(hDlg) && IsDialogMessageW(hDlg, &msg)) {
+            continue;
+        }
         TranslateMessage(&msg);
         DispatchMessageW(&msg);
     }
@@ -388,8 +469,4 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine
     }
 
     return static_cast<int>(msg.wParam);
-}
-
-int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow) {
-    return wWinMain(hInstance, hPrevInstance, GetCommandLineW(), nCmdShow);
 }

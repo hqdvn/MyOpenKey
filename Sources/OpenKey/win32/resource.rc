@@ -1,9 +1,92 @@
 #include <windows.h>
+#include <commctrl.h>
+#include "resource.h"
 
+IDI_APPICON ICON "MyOpenKey.ico"
+
+IDD_SETTINGS DIALOGEX 0, 0, 340, 260
+STYLE DS_SETFONT | DS_MODALFRAME | DS_CENTER | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Bảng điều khiển MyOpenKey"
+FONT 9, "Segoe UI", 400, 0, 0x0
+BEGIN
+    CONTROL         "", IDC_TAB_MAIN, "SysTabControl32", WS_TABSTOP | WS_CLIPSIBLINGS, 7, 7, 326, 222
+    DEFPUSHBUTTON   "Đóng", IDCANCEL, 278, 235, 55, 16, WS_TABSTOP
+END
+
+IDD_TAB_INPUT DIALOGEX 0, 0, 318, 198
+STYLE DS_SETFONT | DS_CONTROL | WS_CHILD | WS_VISIBLE
+FONT 9, "Segoe UI", 400, 0, 0x0
+BEGIN
+    GROUPBOX        "Kiểu gõ && Bảng mã", IDC_STATIC, 7, 7, 304, 76
+    LTEXT           "Kiểu gõ:", IDC_STATIC, 16, 25, 45, 12
+    COMBOBOX        IDC_COMBO_INPUT_TYPE, 65, 23, 140, 100, CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
+    LTEXT           "Bảng mã:", IDC_STATIC, 16, 52, 45, 12
+    COMBOBOX        IDC_COMBO_CODE_TABLE, 65, 50, 180, 100, CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
+
+    GROUPBOX        "Phím chuyển Việt / Anh", IDC_STATIC, 7, 90, 304, 98
+    AUTORADIOBUTTON "Ctrl + Shift", IDC_RADIO_CTRL_SHIFT, 16, 108, 90, 12, WS_GROUP | WS_TABSTOP
+    AUTORADIOBUTTON "Alt + Z", IDC_RADIO_ALT_Z, 120, 108, 90, 12
+    AUTOCHECKBOX    "Kêu ""bíp"" khi chuyển phím", IDC_CHK_BEEP, 16, 132, 180, 12, WS_TABSTOP
+END
+
+IDD_TAB_SPELLING DIALOGEX 0, 0, 318, 198
+STYLE DS_SETFONT | DS_CONTROL | WS_CHILD | WS_VISIBLE
+FONT 9, "Segoe UI", 400, 0, 0x0
+BEGIN
+    GROUPBOX        "Kiểm tra chính tả", IDC_STATIC, 7, 7, 304, 76
+    AUTOCHECKBOX    "Kiểm tra chính tả", IDC_CHK_SPELLING, 16, 22, 140, 12, WS_TABSTOP
+    AUTOCHECKBOX    "Đặt dấu oà, uý kiểu mới", IDC_CHK_MODERN_ORTHO, 16, 38, 140, 12, WS_TABSTOP
+    AUTOCHECKBOX    "Tự khôi phục từ sai chính tả", IDC_CHK_RESTORE_SPELL, 16, 54, 140, 12, WS_TABSTOP
+    AUTOCHECKBOX    "Bỏ dấu tự do", IDC_CHK_FREE_MARK, 170, 22, 130, 12, WS_TABSTOP
+    AUTOCHECKBOX    "Viết hoa chữ đầu câu", IDC_CHK_AUTO_UPPER, 170, 38, 130, 12, WS_TABSTOP
+
+    GROUPBOX        "Tính năng gõ nhanh", IDC_STATIC, 7, 90, 304, 98
+    AUTOCHECKBOX    "Gõ tắt Telex nhanh", IDC_CHK_QUICK_TELEX, 16, 106, 140, 12, WS_TABSTOP
+    AUTOCHECKBOX    "Phụ âm đầu nhanh (f, j, w)", IDC_CHK_QUICK_START, 16, 124, 140, 12, WS_TABSTOP
+    AUTOCHECKBOX    "Phụ âm cuối nhanh (g, h, k)", IDC_CHK_QUICK_END, 16, 142, 140, 12, WS_TABSTOP
+    AUTOCHECKBOX    "Cho phép phụ âm Z, F, W, J", IDC_CHK_ALLOW_ZFWJ, 16, 160, 140, 12, WS_TABSTOP
+END
+
+IDD_TAB_MACRO DIALOGEX 0, 0, 318, 198
+STYLE DS_SETFONT | DS_CONTROL | WS_CHILD | WS_VISIBLE
+FONT 9, "Segoe UI", 400, 0, 0x0
+BEGIN
+    AUTOCHECKBOX    "Bật tính năng gõ tắt", IDC_CHK_USE_MACRO, 7, 5, 95, 12, WS_TABSTOP
+    AUTOCHECKBOX    "Dùng gõ tắt ở chế độ tiếng Anh", IDC_CHK_MACRO_ENGLISH, 108, 5, 125, 12, WS_TABSTOP
+    AUTOCHECKBOX    "Tự viết hoa gõ tắt", IDC_CHK_AUTO_CAPS_MACRO, 238, 5, 75, 12, WS_TABSTOP
+
+    CONTROL         "", IDC_LIST_MACRO, "SysListView32", LVS_REPORT | LVS_SINGLESEL | LVS_SHOWSELALWAYS | WS_BORDER | WS_TABSTOP, 7, 22, 304, 110
+
+    LTEXT           "Từ gõ tắt:", IDC_STATIC, 7, 138, 40, 12
+    EDITTEXT        IDC_EDIT_MACRO_KEY, 50, 136, 80, 14, ES_AUTOHSCROLL | WS_TABSTOP
+    LTEXT           "Nội dung:", IDC_STATIC, 138, 138, 38, 12
+    EDITTEXT        IDC_EDIT_MACRO_TEXT, 178, 136, 133, 14, ES_AUTOHSCROLL | WS_TABSTOP
+
+    PUSHBUTTON      "Thêm / Cập nhật", IDC_BTN_MACRO_ADD, 7, 156, 75, 15, WS_TABSTOP
+    PUSHBUTTON      "Xoá", IDC_BTN_MACRO_DEL, 86, 156, 45, 15, WS_TABSTOP
+    PUSHBUTTON      "Nhập từ tệp…", IDC_BTN_MACRO_IMPORT, 175, 156, 65, 15, WS_TABSTOP
+    PUSHBUTTON      "Xuất ra tệp…", IDC_BTN_MACRO_EXPORT, 244, 156, 67, 15, WS_TABSTOP
+END
+
+IDD_TAB_SYSTEM DIALOGEX 0, 0, 318, 198
+STYLE DS_SETFONT | DS_CONTROL | WS_CHILD | WS_VISIBLE
+FONT 9, "Segoe UI", 400, 0, 0x0
+BEGIN
+    GROUPBOX        "Hệ thống", IDC_STATIC, 7, 7, 304, 100
+    AUTOCHECKBOX    "Khởi động cùng Windows", IDC_CHK_RUN_STARTUP, 16, 24, 280, 12, WS_TABSTOP
+    AUTOCHECKBOX    "Sửa lỗi gợi ý trên thanh địa chỉ trình duyệt", IDC_CHK_FIX_BROWSER, 16, 42, 280, 12, WS_TABSTOP
+    AUTOCHECKBOX    "Tạm tắt kiểm tra chính tả bằng phím Ctrl", IDC_CHK_TEMP_OFF_SPELL, 16, 60, 280, 12, WS_TABSTOP
+    AUTOCHECKBOX    "Tạm tắt bộ gõ bằng phím Alt", IDC_CHK_TEMP_OFF_ENGINE, 16, 78, 280, 12, WS_TABSTOP
+
+    GROUPBOX        "Thông tin ứng dụng", IDC_STATIC, 7, 115, 304, 75
+    LTEXT           "MyOpenKey - Bộ gõ tiếng Việt", IDC_STATIC, 16, 132, 280, 12
+    LTEXT           "Phiên bản 0.1.09 (Build 10) - GPLv3", IDC_STATIC_VERSION, 16, 148, 280, 12
+    PUSHBUTTON      "Mã nguồn GitHub (hqdvn/MyOpenKey)", IDC_BTN_HOMEPAGE, 16, 166, 180, 16, WS_TABSTOP
+END
 
 VS_VERSION_INFO VERSIONINFO
-FILEVERSION     0,1,8,9
-PRODUCTVERSION  0,1,8,9
+FILEVERSION     0,1,9,10
+PRODUCTVERSION  0,1,9,10
 FILEFLAGSMASK   VS_FFI_FILEFLAGSMASK
 FILEFLAGS       0
 FILEOS          VOS_NT_WINDOWS32
@@ -16,12 +99,12 @@ BEGIN
         BEGIN
             VALUE "CompanyName", "MyOpenKey"
             VALUE "FileDescription", "MyOpenKey Vietnamese Input Method"
-            VALUE "FileVersion", "0.1.08"
+            VALUE "FileVersion", "0.1.09"
             VALUE "InternalName", "MyOpenKey"
             VALUE "LegalCopyright", "GPLv3"
             VALUE "OriginalFilename", "MyOpenKey.exe"
             VALUE "ProductName", "MyOpenKey"
-            VALUE "ProductVersion", "0.1.08"
+            VALUE "ProductVersion", "0.1.09"
         END
     END
     BLOCK "VarFileInfo"

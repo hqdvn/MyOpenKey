@@ -8,6 +8,8 @@
 
 #include <vector>
 #include <algorithm>
+#include <string>
+#include <cwctype>
 
 namespace Hook {
 
@@ -16,8 +18,12 @@ static const ULONG_PTR MYOPENKEY_EXTRA_INFO = 0x4D4F504B; // "MOPK"
 static HWND s_hwndMain = NULL;
 static HHOOK s_kbdHook = NULL;
 static HHOOK s_mouseHook = NULL;
+static HWINEVENTHOOK s_winEventHook = NULL;
 static vKeyHookState* s_pData = nullptr;
 static std::vector<Uint16> s_syncKey;
+
+// Foreground browser tracking
+static bool s_isForegroundBrowser = false;
 
 // Modifier hotkey tracking state
 static bool s_modHotKeyCandidate = false;
@@ -85,6 +91,88 @@ static inline bool IsModifierKey(DWORD vk) {
     }
 }
 
+static bool IsBrowserExe(const wchar_t* exeBase) {
+    if (!exeBase || !*exeBase) return false;
+    static const wchar_t* const s_browsers[] = {
+        L"chrome.exe",
+        L"msedge.exe",
+        L"brave.exe",
+        L"opera.exe",
+        L"vivaldi.exe",
+        L"browser.exe",
+        L"coccoc.exe",
+        L"firefox.exe",
+        L"arc.exe",
+    };
+    for (const wchar_t* b : s_browsers) {
+        if (_wcsicmp(exeBase, b) == 0) {
+            return true;
+        }
+    }
+    return false;
+}
+
+static void UpdateForegroundProcess(HWND hwnd) {
+    if (!hwnd) {
+        hwnd = GetForegroundWindow();
+    }
+    if (!hwnd) {
+        s_isForegroundBrowser = false;
+        return;
+    }
+    DWORD pid = 0;
+    GetWindowThreadProcessId(hwnd, &pid);
+    if (pid == 0) {
+        s_isForegroundBrowser = false;
+        return;
+    }
+
+    HANDLE hProc = OpenProcess(PROCESS_QUERY_LIMITED_INFORMATION, FALSE, pid);
+    if (!hProc) {
+        s_isForegroundBrowser = false;
+        return;
+    }
+
+    wchar_t exePath[MAX_PATH];
+    DWORD size = MAX_PATH;
+    bool success = (QueryFullProcessImageNameW(hProc, 0, exePath, &size) != 0);
+    CloseHandle(hProc);
+
+    if (!success) {
+        s_isForegroundBrowser = false;
+        return;
+    }
+
+    const wchar_t* p1 = wcsrchr(exePath, L'\\');
+    const wchar_t* p2 = wcsrchr(exePath, L'/');
+    const wchar_t* p = p1 > p2 ? p1 : p2;
+    const wchar_t* base = p ? (p + 1) : exePath;
+
+    s_isForegroundBrowser = IsBrowserExe(base);
+}
+
+static void CALLBACK WinEventProc(
+    HWINEVENTHOOK hWinEventHook,
+    DWORD event,
+    HWND hwnd,
+    LONG idObject,
+    LONG idChild,
+    DWORD idEventThread,
+    DWORD dwmsEventTime
+) {
+    (void)hWinEventHook;
+    (void)idObject;
+    (void)idChild;
+    (void)idEventThread;
+    (void)dwmsEventTime;
+
+    if (event == EVENT_SYSTEM_FOREGROUND) {
+        UpdateForegroundProcess(hwnd);
+        startNewSession();
+        ClearSyncKey();
+    }
+}
+
 static bool IsForegroundPasswordField() {
     GUITHREADINFO gti = { sizeof(gti) };
     if (GetGUIThreadInfo(0, &gti)) {
@@ -115,8 +203,14 @@ void SwitchLanguage() {
     }
 }
 
-static void SendReplacementOutput(const std::vector<Uint32>& tokens, Uint16 restoreChar, bool willSendControlKey, WORD vkFallback) {
+static void SendReplacementOutput(const std::vector<Uint32>& tokens, Uint16 restoreChar, bool willSendControlKey, WORD vkFallback, bool useRecommend) {
     std::vector<INPUT> inputs;
+
+    // 0. Workaround for browser autocomplete: send empty character and extra backspace first
+    if (useRecommend) {
+        AddUnicodeChar(inputs, 0x202F);
+        AddBackspace(inputs);
+    }
 
     // 1. Backspaces
     int bsCount = std::min(static_cast<int>(s_pData->backspaceCount), MAX_BUFF);
@@ -203,7 +297,10 @@ static LRESULT CALLBACK LowLevelKeyboardProc(int nCode, WPARAM wParam, LPARAM lP
             s_modHotKeyDisqualified = true;
 
             // Check normal key hotkey (e.g. Alt+Z)
-            if (GET_SWITCH_KEY(vSwitchKeyStatus) != 0xFE && vk == static_cast<DWORD>(GET_SWITCH_KEY(vSwitchKeyStatus))) {
+            DWORD switchKey = GET_SWITCH_KEY(vSwitchKeyStatus);
+            bool isZ = (switchKey == 'Z' || switchKey == 'z' || switchKey == 6 || switchKey == 0x5A || switchKey == 0x7A);
+            bool keyMatch = (switchKey != 0xFE) && (vk == switchKey || (isZ && (vk == 'Z' || vk == 0x5A)));
+            if (keyMatch) {
                 bool ctrl = (GetKeyState(VK_CONTROL) & 0x8000) != 0;
                 bool shift = (GetKeyState(VK_SHIFT) & 0x8000) != 0;
                 bool alt = (GetKeyState(VK_MENU) & 0x8000) != 0;
@@ -281,7 +378,8 @@ static LRESULT CALLBACK LowLevelKeyboardProc(int nCode, WPARAM wParam, LPARAM lP
         if (vUseMacro && vUseMacroInEnglishMode) {
             vEnglishMode(vKeyEventState::KeyDown, keyCode, (capsStatus != 0), otherControlKey);
             if (s_pData && s_pData->code == vReplaceMaro) {
-                SendReplacementOutput(s_pData->macroData, 0, true, static_cast<WORD>(vk));
+                bool useRecommend = (vFixRecommendBrowser != 0) && s_isForegroundBrowser && (s_pData->backspaceCount > 0);
+                SendReplacementOutput(s_pData->macroData, 0, true, static_cast<WORD>(vk), useRecommend);
                 return 1;
             }
         }
@@ -338,7 +436,9 @@ static LRESULT CALLBACK LowLevelKeyboardProc(int nCode, WPARAM wParam, LPARAM lP
             }
         }
 
-        SendReplacementOutput(tokens, restoreChar, willSendControlKey, static_cast<WORD>(vk));
+        bool useRecommend = (vFixRecommendBrowser != 0) && s_isForegroundBrowser && (s_pData->backspaceCount > 0) && (s_pData->extCode != 4);
+
+        SendReplacementOutput(tokens, restoreChar, willSendControlKey, static_cast<WORD>(vk), useRecommend);
 
         if (s_pData->code == vRestoreAndStartNewSession) {
             startNewSession();
@@ -346,7 +446,8 @@ static LRESULT CALLBACK LowLevelKeyboardProc(int nCode, WPARAM wParam, LPARAM lP
 
         return 1; // swallow original key
     } else if (s_pData->code == vReplaceMaro) {
-        SendReplacementOutput(s_pData->macroData, 0, true, static_cast<WORD>(vk));
+        bool useRecommend = (vFixRecommendBrowser != 0) && s_isForegroundBrowser && (s_pData->backspaceCount > 0);
+        SendReplacementOutput(s_pData->macroData, 0, true, static_cast<WORD>(vk), useRecommend);
         return 1; // swallow original key
     }
 
@@ -380,8 +481,20 @@ bool Install(HWND hwndMain) {
     if (!s_mouseHook) {
         s_mouseHook = SetWindowsHookExW(WH_MOUSE_LL, LowLevelMouseProc, hInst, 0);
     }
+    if (!s_winEventHook) {
+        UpdateForegroundProcess(GetForegroundWindow());
+        s_winEventHook = SetWinEventHook(
+            EVENT_SYSTEM_FOREGROUND,
+            EVENT_SYSTEM_FOREGROUND,
+            NULL,
+            WinEventProc,
+            0,
+            0,
+            WINEVENT_OUTOFCONTEXT
+        );
+    }
 
-    return (s_kbdHook != NULL && s_mouseHook != NULL);
+    return (s_kbdHook != NULL && s_mouseHook != NULL && s_winEventHook != NULL);
 }
 
 void Uninstall() {
@@ -393,6 +506,10 @@ void Uninstall() {
         UnhookWindowsHookEx(s_mouseHook);
         s_mouseHook = NULL;
     }
+    if (s_winEventHook) {
+        UnhookWinEvent(s_winEventHook);
+        s_winEventHook = NULL;
+    }
 }
 
 void Reinstall() {
@@ -403,7 +520,7 @@ void Reinstall() {
 }
 
 void CheckHealth() {
-    if (!s_kbdHook || !s_mouseHook) {
+    if (!s_kbdHook || !s_mouseHook || !s_winEventHook) {
         Reinstall();
     }
 }

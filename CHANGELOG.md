@@ -1,5 +1,15 @@
 # MyOpenKey Changelog
 
+##### MyOpenKey 0.1.09 (Build 10) — 23/10/2026
+Phát triển bởi **Huỳnh Quốc Đạt** ([hqd.vn](https://hqd.vn) · [work@hqd.vn](mailto:work@hqd.vn))
+Dự án mã nguồn mở độc lập tại [github.com/hqdvn/MyOpenKey](https://github.com/hqdvn/MyOpenKey).
+
+- Windows: sửa gõ trên thanh địa chỉ trình duyệt bị lặp ký tự (`oo` → `oô`) do gợi ý tự động
+- Windows: thêm biểu tượng ứng dụng cho exe, lối tắt và bộ cài
+- Windows: sửa biểu tượng khay hệ thống không hiển thị
+- Windows: thêm Bảng điều khiển (kiểu gõ, bảng mã, chính tả, gõ tắt, hệ thống) mở từ biểu tượng khay
+- macOS: không có thay đổi chức năng
+
 ##### MyOpenKey 0.1.08 (Build 9) — 23/10/2026
 Phát triển bởi **Huỳnh Quốc Đạt** ([hqd.vn](https://hqd.vn) · [work@hqd.vn](mailto:work@hqd.vn))
 Dự án mã nguồn mở độc lập tại [github.com/hqdvn/MyOpenKey](https://github.com/hqdvn/MyOpenKey).

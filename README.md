@@ -65,10 +65,15 @@ MyOpenKey là bộ gõ tiếng Việt mã nguồn mở cho macOS (yêu cầu mac
 
 ## 📥 Cài đặt
 
+### macOS
 1. Tải bản phát hành mới nhất tại [MyOpenKey Releases](https://github.com/hqdvn/MyOpenKey/releases/latest) (chọn file `.dmg`).
 2. Mở file `.dmg` và kéo biểu tượng **MyOpenKey** vào thư mục **Applications**.
 3. Mở ứng dụng và bật quyền **Trợ năng (Accessibility)** trong *Cài đặt hệ thống* theo hướng dẫn để sử dụng.
 
+### Windows
+1. Tải bộ cài `MyOpenKey-<version>-setup.exe` (hoặc bản portable `.zip`) tại [MyOpenKey Releases](https://github.com/hqdvn/MyOpenKey/releases/latest).
+2. Chạy bộ cài và hoàn tất các bước hướng dẫn trên màn hình.
+3. **Lưu ý trên Windows 11:** Windows 11 mặc định đưa các biểu tượng ứng dụng mới vào menu ẩn (dấu `^` ở khay hệ thống). Người dùng có thể kéo biểu tượng **V** / **E** ra ngoài thanh taskbar hoặc bật hiển thị tại: **Settings → Personalization → Taskbar → Other system tray icons**.
 ---
 
 ## 🛠️ Biên dịch từ mã nguồn

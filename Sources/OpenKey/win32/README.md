@@ -21,6 +21,19 @@ The compiled binary will be placed at `build/Release/MyOpenKey.exe`.
 - Registry-based settings storage under `HKCU\Software\MyOpenKey`.
 - Reuses the core engine in `Sources/OpenKey/engine` and `ChunkSplitter.h`.
 
+## Hướng dẫn sử dụng
+
+- **Mở Bảng điều khiển (Settings):**
+  - Nhấp đúp chuột trái (double-click) vào biểu tượng chữ **V** / **E** ở khay hệ thống (System Tray).
+  - Hoặc nhấp chuột phải vào biểu tượng khay và chọn mục in đậm đầu tiên: **Bảng điều khiển…**.
+  - Bảng điều khiển gồm 4 thẻ:
+    1. **Bộ gõ:** Kiểu gõ (Telex, VNI, Simple Telex 1, Simple Telex 2), bảng mã (Unicode dựng sẵn, TCVN3, VNI Windows, Unicode tổ hợp, CP 1258), phím chuyển Việt/Anh (Ctrl+Shift hoặc Alt+Z), âm thanh "bíp".
+    2. **Chính tả & gõ nhanh:** Kiểm tra chính tả, đặt dấu oà/uý kiểu mới, khôi phục từ sai chính tả, bỏ dấu tự do, gõ tắt Telex nhanh, phụ âm đầu/cuối nhanh, cho phép Z/F/W/J, viết hoa đầu câu.
+    3. **Gõ tắt (Macro):** Quản lý bảng gõ tắt, thêm/sửa/xoá, nhập/xuất tệp văn bản (`.txt`).
+    4. **Hệ thống:** Khởi động cùng Windows, sửa lỗi gợi ý tự động trên thanh địa chỉ trình duyệt (Chrome, Edge, Brave, Cốc Cốc, Firefox, Arc), phím tạm tắt nhanh Ctrl/Alt.
+- **Chuyển chế độ gõ Việt / Anh:** Nhấp đơn chuột trái (single-click) vào biểu tượng khay, hoặc dùng phím tắt (`Ctrl + Shift` hoặc `Alt + Z`).
+- **Lưu ý trên Windows 11:** Windows 11 mặc định đưa các biểu tượng khay hệ thống mới vào menu ẩn (dấu `^`). Người dùng có thể kéo biểu tượng chữ **V**/**E** ra ngoài thanh taskbar hoặc bật hiển thị tại: **Settings → Personalization → Taskbar → Other system tray icons**.
+
 ## Known Limits
 
 - **Elevated applications (Admin):** Windows User Interface Privilege Isolation (UIPI) prevents lower-integrity processes from sending synthetic input to higher-integrity processes. When typing into applications running as Administrator (e.g., elevated cmd/powershell or Task Manager), MyOpenKey must also be run as Administrator.
