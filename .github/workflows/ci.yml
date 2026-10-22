@@ -1,0 +1,49 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  test-and-build:
+    runs-on: macos-14
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Select Xcode
+        run: sudo xcode-select -s /Applications/Xcode.app/Contents/Developer
+
+      - name: Run Engine Regression Tests
+        run: bash Tests/run.sh
+
+      - name: Build macOS App (Debug)
+        run: xcodebuild -project Sources/OpenKey/macOS/OpenKey.xcodeproj -scheme OpenKey -configuration Debug CODE_SIGNING_ALLOWED=NO build
+
+  engine-windows:
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Configure CMake
+        run: cmake -B build
+
+      - name: Build Engine, Tests & App
+        run: cmake --build build --config Release
+
+      - name: Run Engine Tests
+        run: ctest --test-dir build -C Release --output-on-failure
+
+      - name: Upload Windows Executable
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: MyOpenKey-windows
+          path: build/Release/MyOpenKey.exe

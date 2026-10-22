@@ -18,19 +18,20 @@ static Int8 _cacheData = 0; //use cache for faster
 
 void initSmartSwitchKey(const Byte* pData, const int& size) {
     _smartSwitchKeyData.clear();
-    if (pData == NULL) return;
+    if (pData == NULL || size < 2) return;
     Uint16 count = 0;
     Uint32 cursor = 0;
-    if (size >= 2) {
-        memcpy(&count, pData + cursor, 2);
-        cursor+=2;
-    }
+    memcpy(&count, pData + cursor, 2);
+    cursor += 2;
     Uint8 bundleIdSize;
     Uint8 value;
     for (int i = 0; i < count; i++) {
+        if (cursor + 1 > (Uint32)size) break;
         bundleIdSize = pData[cursor++];
+        if (cursor + bundleIdSize > (Uint32)size) break;
         string bundleId((char*)pData + cursor, bundleIdSize);
         cursor += bundleIdSize;
+        if (cursor + 1 > (Uint32)size) break;
         value = pData[cursor++];
         _smartSwitchKeyData[bundleId] = value;
     }
@@ -38,11 +39,17 @@ void initSmartSwitchKey(const Byte* pData, const int& size) {
 
 void getSmartSwitchKeySaveData(vector<Byte>& outData) {
     outData.clear();
-    Uint16 count = (Uint16)_smartSwitchKeyData.size();
+    Uint16 count = 0;
+    for (std::map<string, Int8>::iterator it = _smartSwitchKeyData.begin(); it != _smartSwitchKeyData.end(); ++it) {
+        if (it->first.length() <= 255) {
+            count++;
+        }
+    }
     outData.push_back((Byte)count);
     outData.push_back((Byte)(count>>8));
     
     for (std::map<string, Int8>::iterator it = _smartSwitchKeyData.begin(); it != _smartSwitchKeyData.end(); ++it) {
+        if (it->first.length() > 255) continue;
         outData.push_back((Byte)it->first.length());
         for (int j = 0; j < it->first.length(); j++) {
             outData.push_back(it->first[j]);

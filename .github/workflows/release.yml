@@ -11,18 +11,18 @@ permissions:
 jobs:
   build-and-release:
     runs-on: macos-14
+    env:
+      CERTIFICATE_P12: ${{ secrets.CERTIFICATE_P12 }}
+      CERTIFICATE_PWD: ${{ secrets.CERTIFICATE_PWD }}
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v7
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
       - name: Select Xcode
         run: sudo xcode-select -s /Applications/Xcode.app/Contents/Developer
       - name: Import Code Signing Certificate
         if: env.CERTIFICATE_P12 != ''
-        env:
-          CERTIFICATE_P12: ${{ secrets.CERTIFICATE_P12 }}
-          CERTIFICATE_PWD: ${{ secrets.CERTIFICATE_PWD }}
         run: |
           KEYCHAIN_PATH=$RUNNER_TEMP/build.keychain
           KEYCHAIN_PASSWORD=$(openssl rand -hex 12)
@@ -56,7 +56,7 @@ jobs:
           chmod +x build_release.sh
           ./build_release.sh
       - name: Upload to GitHub Release
-        uses: softprops/action-gh-release@v3
+        uses: softprops/action-gh-release@efb35369e0ad2afab669f228072c1b0d510eae64 # v3.0.3
         with:
           files: |
             dist/*.dmg
@@ -76,4 +76,115 @@ jobs:
           cp dist/appcast.xml appcast.xml
           git add appcast.xml
           git commit -m "Update Sparkle appcast.xml for ${{ github.ref_name }}" || true
-          git push origin main || true
+          git push origin main
+
+  build-windows:
+    needs: build-and-release
+    runs-on: windows-latest
+    permissions:
+      contents: write
+    env:
+      WINDOWS_PFX_BASE64: ${{ secrets.WINDOWS_PFX_BASE64 }}
+      WINDOWS_PFX_PASSWORD: ${{ secrets.WINDOWS_PFX_PASSWORD }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Configure CMake
+        shell: pwsh
+        run: cmake -B build
+
+      - name: Build Engine, Tests & App
+        shell: pwsh
+        run: cmake --build build --config Release
+
+      - name: Run Engine Tests
+        shell: pwsh
+        run: ctest --test-dir build -C Release --output-on-failure
+
+      - name: Prepare Artifacts and Package
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $rawTag = '${{ github.ref_name }}'
+          $ver = if ($rawTag.StartsWith('v')) { $rawTag.Substring(1) } else { $rawTag }
+          if ([string]::IsNullOrWhiteSpace($ver)) { $ver = '0.0.0' }
+
+          New-Item -ItemType Directory -Force -Path dist | Out-Null
+          $exePath = "build/Release/MyOpenKey.exe"
+
+          # Sign executable if certificate secret provided
+          if ($env:WINDOWS_PFX_BASE64) {
+            $signtool = Get-ChildItem "${env:ProgramFiles(x86)}\Windows Kits\10\bin" -Recurse -Filter signtool.exe |
+              Where-Object FullName -like '*x64*' | Select-Object -Last 1
+            if ($signtool) {
+              $pfxPath = Join-Path $env:RUNNER_TEMP "cert.pfx"
+              [IO.File]::WriteAllBytes($pfxPath, [Convert]::FromBase64String($env:WINDOWS_PFX_BASE64))
+              try {
+                & $signtool.FullName sign /f $pfxPath /p $env:WINDOWS_PFX_PASSWORD /fd SHA256 /tr http://timestamp.digicert.com /td SHA256 $exePath
+                if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+              } finally {
+                Remove-Item -Force $pfxPath -ErrorAction SilentlyContinue
+              }
+            } else {
+              Write-Warning "signtool.exe not found; skipping signing"
+            }
+          }
+
+          # Create portable zip
+          $zipPath = "dist/MyOpenKey-$ver-windows-portable.zip"
+          Compress-Archive -Path $exePath, LICENSE -DestinationPath $zipPath -Force
+
+          # Locate or install Inno Setup ISCC
+          $iscc = "${env:ProgramFiles(x86)}\Inno Setup 6\ISCC.exe"
+          if (!(Test-Path $iscc)) {
+            choco install innosetup -y --no-progress
+            if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+            $iscc = "${env:ProgramFiles(x86)}\Inno Setup 6\ISCC.exe"
+          }
+          if (!(Test-Path $iscc)) {
+            $isccCmd = Get-Command ISCC.exe -ErrorAction SilentlyContinue
+            if ($isccCmd) { $iscc = $isccCmd.Source }
+          }
+
+          # Build installer
+          $env:MYOPENKEY_VERSION = $ver
+          $env:MYOPENKEY_EXE = (Resolve-Path $exePath).Path
+          & $iscc Sources/OpenKey/win32/installer/MyOpenKey.iss
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+
+          $setupExe = "dist/MyOpenKey-$ver-setup.exe"
+          if (!(Test-Path $setupExe)) {
+            Write-Error "Installer executable not found at $setupExe"
+            exit 1
+          }
+
+          # Sign installer if certificate secret provided
+          if ($env:WINDOWS_PFX_BASE64 -and (Test-Path $setupExe)) {
+            $signtool = Get-ChildItem "${env:ProgramFiles(x86)}\Windows Kits\10\bin" -Recurse -Filter signtool.exe |
+              Where-Object FullName -like '*x64*' | Select-Object -Last 1
+            if ($signtool) {
+              $pfxPath = Join-Path $env:RUNNER_TEMP "cert.pfx"
+              [IO.File]::WriteAllBytes($pfxPath, [Convert]::FromBase64String($env:WINDOWS_PFX_BASE64))
+              try {
+                & $signtool.FullName sign /f $pfxPath /p $env:WINDOWS_PFX_PASSWORD /fd SHA256 /tr http://timestamp.digicert.com /td SHA256 $setupExe
+                if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+              } finally {
+                Remove-Item -Force $pfxPath -ErrorAction SilentlyContinue
+              }
+            }
+          }
+          # Generate SHA256 checksums for all dist files
+          $hashFile = "dist/MyOpenKey-$ver-windows-SHA256.txt"
+          Get-ChildItem dist/* -File | Where-Object Name -notlike "*SHA256.txt" | ForEach-Object {
+            $hash = (Get-FileHash -Path $_.FullName -Algorithm SHA256).Hash.ToLower()
+            "$hash  $($_.Name)"
+          } | Set-Content -Path $hashFile -Encoding utf8
+
+      - name: Upload Windows Artifacts to GitHub Release
+        uses: softprops/action-gh-release@efb35369e0ad2afab669f228072c1b0d510eae64 # v3.0.3
+        with:
+          files: dist/*
+          draft: false
+          prerelease: false

@@ -11,7 +11,6 @@
 
 #import <Cocoa/Cocoa.h>
 
-typedef void (^CheckNewVersionCallback)(void);
 extern CFMachPortRef eventTap;
 
 @interface OpenKeyManager : NSObject
@@ -26,7 +25,6 @@ extern CFMachPortRef eventTap;
 
 +(BOOL)quickConvert;
 
-+(void)checkNewVersion:(NSWindow*)parent callbackFunc:(CheckNewVersionCallback) callback;
 @end
 
 #endif /* OpenKeyManager_h */

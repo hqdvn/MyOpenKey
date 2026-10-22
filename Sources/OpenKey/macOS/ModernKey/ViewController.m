@@ -322,6 +322,7 @@ extern int vPerformLayoutCompat;
 - (IBAction)onCheckNewVersionOnStartup:(NSSwitch *)sender {
     NSInteger val = sender.state == NSControlStateValueOn ? 0 : 1;
     [[NSUserDefaults standardUserDefaults] setInteger:val forKey:@"DontCheckUpdate"];
+    [SparkleUpdater shared].automaticallyChecksForUpdates = (val == 0);
 }
 
 - (IBAction)onFixChromiumBrowser:(NSSwitch *)sender {
@@ -375,13 +376,7 @@ extern int vPerformLayoutCompat;
 }
 
 - (IBAction)onCheckNewVersionButton:(id)sender {
-    self.CheckNewVersionButton.title = @"Đang kiểm tra...";
-    self.CheckNewVersionButton.enabled = false;
-    
-    [OpenKeyManager checkNewVersion:self.view.window callbackFunc:^{
-        self.CheckNewVersionButton.enabled = true;
-        self.CheckNewVersionButton.title = @"Kiểm tra cập nhật...";
-    }];
+    [[SparkleUpdater shared] checkForUpdates];
 }
 
 @end

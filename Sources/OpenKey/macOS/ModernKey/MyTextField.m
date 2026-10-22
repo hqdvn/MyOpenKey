@@ -27,7 +27,8 @@
         if (!eventMonitor) {
             eventMonitor = [NSEvent addLocalMonitorForEventsMatchingMask:NSKeyDownMask handler:^(NSEvent *event) {
                 self.LastKeyCode = event.keyCode;
-                self.LastKeyChar = event.characters.UTF8String[0];
+                const char *c = event.characters.UTF8String;
+                self.LastKeyChar = (c && c[0]) ? c[0] : 0;
                 return event;
             } ];
             

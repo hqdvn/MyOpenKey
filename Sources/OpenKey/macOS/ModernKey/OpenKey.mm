@@ -13,6 +13,7 @@
 #import "AppDelegate.h"
 #import "OpenKeyManager.h"
 #import "ViewController.h"
+#include "ChunkSplitter.h"
 
 #define OTHER_CONTROL_KEY (_flag & kCGEventFlagMaskCommand) || (_flag & kCGEventFlagMaskControl) || \
                             (_flag & kCGEventFlagMaskAlternate) || (_flag & kCGEventFlagMaskSecondaryFn) || \
@@ -112,7 +113,7 @@ extern "C" {
     void OpenKeyInit() {
         //load saved data
         vFreeMark = 0;//(int)[[NSUserDefaults standardUserDefaults] integerForKey:@"FreeMark"];
-        LOAD_DATA(vCodeTable, CodeTable); if (vCodeTable < 0) vCodeTable = 0;
+        LOAD_DATA(vCodeTable, CodeTable); if (vCodeTable < 0 || vCodeTable > 4) vCodeTable = 0;
         LOAD_DATA(vCheckSpelling, Spelling);
         LOAD_DATA(vQuickTelex, QuickTelex);
         LOAD_DATA(vUseModernOrthography, ModernOrthography);
@@ -137,7 +138,9 @@ extern "C" {
         
         LOAD_DATA(vPerformLayoutCompat, vPerformLayoutCompat);
         
-        myEventSource = CGEventSourceCreate(kCGEventSourceStatePrivate);
+        if (!myEventSource) {
+            myEventSource = CGEventSourceCreate(kCGEventSourceStatePrivate);
+        }
 
         UpdateInputSourceCache();
         static bool inputSourceObserved = false;
@@ -160,14 +163,16 @@ extern "C" {
         initSmartSwitchKey((Byte*)data.bytes, (int)data.length);
         
         //init convert tool
-        convertToolDontAlertWhenCompleted = ![prefs boolForKey:@"convertToolDontAlertWhenCompleted"];
+        convertToolDontAlertWhenCompleted = [prefs boolForKey:@"convertToolDontAlertWhenCompleted"];
         convertToolToAllCaps = [prefs boolForKey:@"convertToolToAllCaps"];
         convertToolToAllNonCaps = [prefs boolForKey:@"convertToolToAllNonCaps"];
         convertToolToCapsFirstLetter = [prefs boolForKey:@"convertToolToCapsFirstLetter"];
         convertToolToCapsEachWord = [prefs boolForKey:@"convertToolToCapsEachWord"];
         convertToolRemoveMark = [prefs boolForKey:@"convertToolRemoveMark"];
         convertToolFromCode = [prefs integerForKey:@"convertToolFromCode"];
+        if (convertToolFromCode < 0 || convertToolFromCode > 4) convertToolFromCode = 0;
         convertToolToCode = [prefs integerForKey:@"convertToolToCode"];
+        if (convertToolToCode < 0 || convertToolToCode > 4) convertToolToCode = 0;
         convertToolHotKey = (int)[prefs integerForKey:@"convertToolHotKey"];
         if (convertToolHotKey == 0) {
             convertToolHotKey = EMPTY_HOTKEY;
@@ -195,7 +200,10 @@ extern "C" {
     }
     
     NSString* ConvertUtil(NSString* str) {
-        return [NSString stringWithUTF8String:convertUtil([str UTF8String]).c_str()];
+        if (!str) return @"";
+        const char* cstr = [str UTF8String];
+        if (!cstr) return str;
+        return [NSString stringWithUTF8String:convertUtil(cstr).c_str()];
     }
     
     BOOL containUnicodeCompoundApp(NSString* topApp) {
@@ -257,11 +265,13 @@ extern "C" {
     AXUIElementRef _axSystemWide = NULL;
     AXUIElementRef _axFocused = NULL;
     bool _axFocusedIsSlow = false;
+    bool _axFocusedIsSecure = false;
     bool _axCacheValid = false;
 
     void AXInvalidateFocusCache() {
         if (_axFocused) { CFRelease(_axFocused); _axFocused = NULL; }
         _axFocusedIsSlow = false;
+        _axFocusedIsSecure = false;
         _axCacheValid = false;
     }
 
@@ -270,6 +280,9 @@ extern "C" {
         if (_axCacheValid) return;
         AXInvalidateFocusCache();
         _axCacheValid = true;
+        if (IsSecureEventInputEnabled()) {
+            _axFocusedIsSecure = true;
+        }
         if (_axSystemWide == NULL) {
             _axSystemWide = AXUIElementCreateSystemWide();
             //AX calls run inside the tap callback: a hung target app would block
@@ -281,6 +294,17 @@ extern "C" {
             return;
         AXUIElementSetMessagingTimeout(focused, 0.1);
         _axFocused = focused;
+        CFTypeRef subrole = NULL;
+        if (AXUIElementCopyAttributeValue(focused, kAXSubroleAttribute, &subrole) == kAXErrorSuccess && subrole != NULL) {
+            if (CFGetTypeID(subrole) == CFStringGetTypeID()) {
+                NSString* subroleStr = (__bridge NSString*)subrole;
+                if ([subroleStr isEqualToString:@"AXSecureTextField"] ||
+                    [subroleStr isEqualToString:(__bridge NSString*)kAXSecureTextFieldSubrole]) {
+                    _axFocusedIsSecure = true;
+                }
+            }
+            CFRelease(subrole);
+        }
         pid_t pid = 0;
         if (AXUIElementGetPid(focused, &pid) != kAXErrorSuccess) return;
         NSString* bid = [NSRunningApplication runningApplicationWithProcessIdentifier:pid].bundleIdentifier;
@@ -295,6 +319,12 @@ extern "C" {
         }
     }
 
+    bool AXIsSecureInputActive() {
+        if (IsSecureEventInputEnabled()) return true;
+        AXRefreshFocusCache();
+        return _axFocusedIsSecure;
+    }
+
     bool AXSlowPathActive() {
         if (vCodeTable != 0) return false; //Unicode only: AX strings are UTF-16
         AXRefreshFocusCache();
@@ -303,7 +333,8 @@ extern "C" {
 
     //Atomically replace deleteCount chars before the caret (plus any selected
     //inline completion) with insert. False → caller falls back to key events.
-    bool AXReplaceTextDirect(long deleteCount, NSString* insert) {
+    bool AXReplaceTextDirect(long deleteCount, NSString* insert, bool* outRestoreFailed = nullptr) {
+        if (outRestoreFailed) *outRestoreFailed = false;
         AXUIElementRef focused = _axFocused;
         if (focused == NULL) return false;
 
@@ -318,25 +349,50 @@ extern "C" {
         if (!gotRange || sel.location < deleteCount) return false;
         CFRange replaceRange = CFRangeMake(sel.location - deleteCount, deleteCount + sel.length);
 
+        bool selectionChanged = false;
+        auto restoreSelectionIfNeeded = [&]() -> bool {
+            if (!selectionChanged) return true;
+            AXValueRef origVal = AXValueCreate((AXValueType)kAXValueCFRangeType, &sel);
+            AXError rErr = AXUIElementSetAttributeValue(focused, kAXSelectedTextRangeAttribute, origVal);
+            CFRelease(origVal);
+            if (rErr == kAXErrorSuccess) {
+                selectionChanged = false;
+                return true;
+            }
+            if (outRestoreFailed) *outRestoreFailed = true;
+            return false;
+        };
+
         //strategy 1: select range, set selected text
         AXValueRef newRangeVal = AXValueCreate((AXValueType)kAXValueCFRangeType, &replaceRange);
         AXError err = AXUIElementSetAttributeValue(focused, kAXSelectedTextRangeAttribute, newRangeVal);
         CFRelease(newRangeVal);
-        if (err == kAXErrorSuccess &&
-            AXUIElementSetAttributeValue(focused, kAXSelectedTextAttribute, (__bridge CFTypeRef)insert) == kAXErrorSuccess)
-            return true;
+        if (err == kAXErrorSuccess) {
+            selectionChanged = true;
+            if (AXUIElementSetAttributeValue(focused, kAXSelectedTextAttribute, (__bridge CFTypeRef)insert) == kAXErrorSuccess)
+                return true;
+        }
 
         //strategy 2: rewrite whole value, restore caret
         CFTypeRef valueRef = NULL;
         if (AXUIElementCopyAttributeValue(focused, kAXValueAttribute, &valueRef) != kAXErrorSuccess || valueRef == NULL) {
+            restoreSelectionIfNeeded();
             AXInvalidateFocusCache();
             return false;
         }
-        if (CFGetTypeID(valueRef) != CFStringGetTypeID()) { CFRelease(valueRef); return false; }
+        if (CFGetTypeID(valueRef) != CFStringGetTypeID()) {
+            CFRelease(valueRef);
+            restoreSelectionIfNeeded();
+            return false;
+        }
         NSString* value = (__bridge_transfer NSString*)valueRef;
-        if ((NSUInteger)(replaceRange.location + replaceRange.length) > value.length) return false;
+        if ((NSUInteger)(replaceRange.location + replaceRange.length) > value.length) {
+            restoreSelectionIfNeeded();
+            return false;
+        }
         NSString* newValue = [value stringByReplacingCharactersInRange:NSMakeRange(replaceRange.location, replaceRange.length) withString:insert];
         if (AXUIElementSetAttributeValue(focused, kAXValueAttribute, (__bridge CFTypeRef)newValue) != kAXErrorSuccess) {
+            restoreSelectionIfNeeded();
             AXInvalidateFocusCache();
             return false;
         }
@@ -366,8 +422,13 @@ extern "C" {
             if (keyChar == 0) return false; //restore ends with control key: event path handles it
             buf[n++] = keyChar;
         }
-        if (!AXReplaceTextDirect(pData->backspaceCount, [NSString stringWithCharacters:buf length:n]))
+        bool restoreFailed = false;
+        if (!AXReplaceTextDirect(pData->backspaceCount, [NSString stringWithCharacters:buf length:n], &restoreFailed)) {
+            if (restoreFailed) {
+                pData->backspaceCount = 0;
+            }
             return false;
+        }
         if (pData->code == vRestoreAndStartNewSession)
             startNewSession();
         return true;
@@ -380,7 +441,14 @@ extern "C" {
             if (ch == 0) return false;
             [s appendFormat:@"%C", ch];
         }
-        return AXReplaceTextDirect(pData->backspaceCount, s);
+        bool restoreFailed = false;
+        if (!AXReplaceTextDirect(pData->backspaceCount, s, &restoreFailed)) {
+            if (restoreFailed) {
+                pData->backspaceCount = 0;
+            }
+            return false;
+        }
+        return true;
     }
 
     void saveSmartSwitchKeyData() {
@@ -429,7 +497,8 @@ extern "C" {
         if (!vUseSmartSwitchKey && !vRememberCode)
             return;
 
-        _languageTemp = getAppInputMethodStatus(string(_frontMostApp.UTF8String), vLanguage | (vCodeTable << 1));
+        const char* frontAppStr = _frontMostApp ? _frontMostApp.UTF8String : NULL;
+        _languageTemp = getAppInputMethodStatus(string(frontAppStr ? frontAppStr : ""), vLanguage | (vCodeTable << 1));
         if (vUseSmartSwitchKey && (_languageTemp & 0x01) != vLanguage) { //for input method
             if (_languageTemp != -1) {
                 vLanguage = _languageTemp;
@@ -441,7 +510,9 @@ extern "C" {
         }
         if (vRememberCode && (_languageTemp >> 1) != vCodeTable) { //for remember table code feature
             if (_languageTemp != -1) {
-                [appDelegate onCodeTableChanged:(_languageTemp >> 1)];
+                int codeTable = (_languageTemp >> 1);
+                if (codeTable < 0 || codeTable > 4) codeTable = 0;
+                [appDelegate onCodeTableChanged:codeTable];
             } else {
                 saveSmartSwitchKeyData();
             }
@@ -452,7 +523,8 @@ extern "C" {
         onTableCodeChange();
         if (vRememberCode) {
             queryFrontMostApp();
-            setAppInputMethodStatus(string(_frontMostApp.UTF8String), vLanguage | (vCodeTable << 1));
+            const char* appStr = _frontMostApp ? _frontMostApp.UTF8String : NULL;
+            setAppInputMethodStatus(string(appStr ? appStr : ""), vLanguage | (vCodeTable << 1));
             saveSmartSwitchKeyData();
         }
     }
@@ -460,7 +532,8 @@ extern "C" {
     void OnInputMethodChanged() {
         if (vUseSmartSwitchKey) {
             queryFrontMostApp();
-            setAppInputMethodStatus(string(_frontMostApp.UTF8String), vLanguage | (vCodeTable << 1));
+            const char* appStr = _frontMostApp ? _frontMostApp.UTF8String : NULL;
+            setAppInputMethodStatus(string(appStr ? appStr : ""), vLanguage | (vCodeTable << 1));
             saveSmartSwitchKeyData();
         }
     }
@@ -604,12 +677,14 @@ extern "C" {
         PostBackspaceEvent();
         
         if (IS_DOUBLE_CODE(vCodeTable)) { //VNI or Unicode Compound
-            if (_syncKey.back() > 1) {
-                if (!(vCodeTable == 3 && containUnicodeCompoundApp(_targetApp))) {
-                    PostBackspaceEvent();
+            if (!_syncKey.empty()) {
+                if (_syncKey.back() > 1) {
+                    if (!(vCodeTable == 3 && containUnicodeCompoundApp(_targetApp))) {
+                        PostBackspaceEvent();
+                    }
                 }
+                _syncKey.pop_back();
             }
-            _syncKey.pop_back();
         }
     }
     
@@ -625,13 +700,15 @@ extern "C" {
         CGEventTapPostEvent(_proxy, eventVkeyUp);
         
         if (IS_DOUBLE_CODE(vCodeTable)) { //VNI or Unicode Compound
-            if (_syncKey.back() > 1) {
-                if (!(vCodeTable == 3 && containUnicodeCompoundApp(_targetApp))) {
-                    CGEventTapPostEvent(_proxy, eventVkeyDown);
-                    CGEventTapPostEvent(_proxy, eventVkeyUp);
+            if (!_syncKey.empty()) {
+                if (_syncKey.back() > 1) {
+                    if (!(vCodeTable == 3 && containUnicodeCompoundApp(_targetApp))) {
+                        CGEventTapPostEvent(_proxy, eventVkeyDown);
+                        CGEventTapPostEvent(_proxy, eventVkeyUp);
+                    }
                 }
+                _syncKey.pop_back();
             }
-            _syncKey.pop_back();
         }
         CFRelease(eventVkeyDown);
         CFRelease(eventVkeyUp);
@@ -652,94 +729,56 @@ extern "C" {
         CFRelease(eventVkeyUp);
     }
     
-    void SendNewCharString(const bool& dataFromMacro=false, const Uint16& offset=0) {
-        _j = 0;
-        _newCharSize = dataFromMacro ? pData->macroData.size() : pData->newCharCount;
-        _willContinuteSending = false;
-        _willSendControlKey = false;
-        
-        if (_newCharSize > 0) {
-            for (_k = dataFromMacro ? offset : pData->newCharCount - 1 - offset;
-                 dataFromMacro ? _k < pData->macroData.size() : _k >= 0;
-                 dataFromMacro ? _k++ : _k--) {
-                
-                if (_j >= 16) {
-                    _willContinuteSending = true;
-                    break;
-                }
-                
-                _tempChar = DYNA_DATA(dataFromMacro, _k);
-                if (_tempChar & PURE_CHARACTER_MASK) {
-                    _newCharString[_j++] = _tempChar;
-                    if (IS_DOUBLE_CODE(vCodeTable)) {
-                        InsertKeyLength(1);
-                    }
-                } else if (!(_tempChar & CHAR_CODE_MASK)) {
-                    if (IS_DOUBLE_CODE(vCodeTable)) //VNI
-                        InsertKeyLength(1);
-                    _newCharString[_j++] = keyCodeToCharacter(_tempChar);
-                } else {
-                    if (vCodeTable == 0) {  //unicode 2 bytes code
-                        _newCharString[_j++] = _tempChar;
-                    } else if (vCodeTable == 1 || vCodeTable == 2 || vCodeTable == 4) { //others such as VNI Windows, TCVN3: 1 byte code
-                        _newChar = _tempChar;
-                        _newCharHi = HIBYTE(_newChar);
-                        _newChar = LOBYTE(_newChar);
-                        _newCharString[_j++] = _newChar;
-                        
-                        if (_newCharHi > 32) {
-                            if (vCodeTable == 2) //VNI
-                                InsertKeyLength(2);
-                            _newCharString[_j++] = _newCharHi;
-                            _newCharSize++;
-                        } else {
-                            if (vCodeTable == 2) //VNI
-                                InsertKeyLength(1);
-                        }
-                    } else if (vCodeTable == 3) { //Unicode Compound
-                        _newChar = _tempChar;
-                        _newCharHi = (_newChar >> 13);
-                        _newChar &= 0x1FFF;
-                        
-                        InsertKeyLength(_newCharHi > 0 ? 2 : 1);
-                        _newCharString[_j++] = _newChar;
-                        if (_newCharHi > 0) {
-                            _newCharSize++;
-                            _newCharString[_j++] = _unicodeCompoundMark[_newCharHi - 1];
-                        }
-                        
-                    }
-                }
-            }//end for
-        }
-        
-        if (!_willContinuteSending && (pData->code == vRestore || pData->code == vRestoreAndStartNewSession)) { //if is restore
-            if (keyCodeToCharacter(_keycode) != 0) {
-                _newCharSize++;
-                _newCharString[_j++] = keyCodeToCharacter(_keycode | ((_flag & kCGEventFlagMaskAlphaShift) || (_flag & kCGEventFlagMaskShift) ? CAPS_MASK : 0));
-            } else {
-                _willSendControlKey = true;
+    void SendNewCharString(const bool& dataFromMacro=false) {
+        std::vector<Uint32> tokens;
+        if (dataFromMacro) {
+            tokens = pData->macroData;
+        } else {
+            int count = std::min((int)pData->newCharCount, MAX_BUFF);
+            for (int k = count - 1; k >= 0; k--) {
+                tokens.push_back(pData->charData[k]);
             }
         }
-        if (!_willContinuteSending && pData->code == vRestoreAndStartNewSession) {
+
+        // Bookkeeping for InsertKeyLength: must match token expansion in order
+        if (IS_DOUBLE_CODE(vCodeTable)) {
+            for (size_t i = 0; i < tokens.size(); i++) {
+                CharUnits u = expandCharToken(tokens[i], vCodeTable, keyCodeToCharacter);
+                if (u.syncKeyLength > 0) {
+                    InsertKeyLength(u.syncKeyLength);
+                }
+            }
+        }
+
+        Uint16 restoreChar = 0;
+        bool willSendControlKey = false;
+        if (pData->code == vRestore || pData->code == vRestoreAndStartNewSession) {
+            if (keyCodeToCharacter(_keycode) != 0) {
+                restoreChar = keyCodeToCharacter(_keycode | ((_flag & kCGEventFlagMaskAlphaShift) || (_flag & kCGEventFlagMaskShift) ? CAPS_MASK : 0));
+            } else {
+                willSendControlKey = true;
+            }
+        }
+
+        std::vector<std::vector<uint16_t>> chunks = splitIntoChunks(tokens, vCodeTable, restoreChar, keyCodeToCharacter);
+
+        for (size_t c = 0; c < chunks.size(); c++) {
+            const auto& chunk = chunks[c];
+            CGEventRef newEventDown = CGEventCreateKeyboardEvent(myEventSource, 0, true);
+            CGEventRef newEventUp = CGEventCreateKeyboardEvent(myEventSource, 0, false);
+            CGEventKeyboardSetUnicodeString(newEventDown, chunk.size(), chunk.data());
+            CGEventKeyboardSetUnicodeString(newEventUp, chunk.size(), chunk.data());
+            CGEventTapPostEvent(_proxy, newEventDown);
+            CGEventTapPostEvent(_proxy, newEventUp);
+            CFRelease(newEventDown);
+            CFRelease(newEventUp);
+        }
+
+        if (pData->code == vRestoreAndStartNewSession) {
             startNewSession();
         }
-        
-        _newEventDown = CGEventCreateKeyboardEvent(myEventSource, 0, true);
-        _newEventUp = CGEventCreateKeyboardEvent(myEventSource, 0, false);
-        CGEventKeyboardSetUnicodeString(_newEventDown, _willContinuteSending ? 16 : _newCharSize - offset, _newCharString);
-        CGEventKeyboardSetUnicodeString(_newEventUp, _willContinuteSending ? 16 : _newCharSize - offset, _newCharString);
-        CGEventTapPostEvent(_proxy, _newEventDown);
-        CGEventTapPostEvent(_proxy, _newEventUp);
-        CFRelease(_newEventDown);
-        CFRelease(_newEventUp);
 
-        if (_willContinuteSending) {
-            SendNewCharString(dataFromMacro, dataFromMacro ? _k : 16);
-        }
-        
-        //the case when hCode is vRestore or vRestoreAndStartNewSession, the word is invalid and last key is control key such as TAB, LEFT ARROW, RIGHT ARROW,...
-        if (_willSendControlKey) {
+        if (willSendControlKey) {
             SendKeyCode(_keycode);
         }
     }
@@ -797,10 +836,9 @@ extern "C" {
         }
         
         //send backspace
-        if (pData->backspaceCount > 0) {
-            for (int i = 0; i < pData->backspaceCount; i++) {
-                SendBackspace();
-            }
+        int bsCount = std::min((int)pData->backspaceCount, MAX_BUFF);
+        for (int i = 0; i < bsCount; i++) {
+            SendBackspace();
         }
         //send real data
         if (!vSendKeyStepByStep) {
@@ -879,7 +917,9 @@ extern "C" {
                     return NULL;
                 }
                 if (GET_SWITCH_KEY(convertToolHotKey) == _keycode && checkHotKey(convertToolHotKey, GET_SWITCH_KEY(convertToolHotKey) != 0xFE)){
-                    [appDelegate onQuickConvert];
+                    dispatch_async(dispatch_get_main_queue(), ^{
+                        [appDelegate onQuickConvert];
+                    });
                     _lastFlag = 0;
                     _hasJustUsedHotKey = true;
                     return NULL;
@@ -899,7 +939,9 @@ extern "C" {
                 }
                 if (checkHotKey(convertToolHotKey, GET_SWITCH_KEY(convertToolHotKey) != 0xFE)) {
                     _lastFlag = 0;
-                    [appDelegate onQuickConvert];
+                    dispatch_async(dispatch_get_main_queue(), ^{
+                        [appDelegate onQuickConvert];
+                    });
                     _hasJustUsedHotKey = true;
                     return NULL;
                 }
@@ -922,10 +964,17 @@ extern "C" {
         
         _proxy = proxy;
         
+        //handle mouse
+        if (type == kCGEventLeftMouseDown || type == kCGEventRightMouseDown) {
+            RequestNewSession();
+            vEnglishMode(vKeyEventState::MouseDown, 0, false, 0);
+            return event;
+        }
+
         //If is in english mode
         if (vLanguage == 0) {
             if (vUseMacro && vUseMacroInEnglishMode && type == kCGEventKeyDown) {
-                vEnglishMode((type == kCGEventKeyDown ? vKeyEventState::KeyDown : vKeyEventState::MouseDown),
+                vEnglishMode(vKeyEventState::KeyDown,
                              _keycode,
                              (_flag & kCGEventFlagMaskShift) || (_flag & kCGEventFlagMaskAlphaShift),
                              OTHER_CONTROL_KEY);
@@ -935,12 +984,6 @@ extern "C" {
                     return NULL;
                 }
             }
-            return event;
-        }
-        
-        //handle mouse
-        if (type == kCGEventLeftMouseDown || type == kCGEventRightMouseDown) {
-            RequestNewSession();
             return event;
         }
 
@@ -959,6 +1002,11 @@ extern "C" {
             }
             _axLastKeyTime = now;
             //send event signal to Engine
+            if (AXIsSecureInputActive()) {
+                RequestNewSession();
+                vEnglishMode(vKeyEventState::MouseDown, 0, false, 0);
+                return event;
+            }
             vKeyHandleEvent(vKeyEvent::Keyboard,
                             vKeyEventState::KeyDown,
                             _keycode,
@@ -1004,10 +1052,9 @@ extern "C" {
                 }
                 
                 //send backspace
-                if (pData->backspaceCount > 0 && pData->backspaceCount < MAX_BUFF) {
-                    for (_i = 0; _i < pData->backspaceCount; _i++) {
-                        SendBackspace();
-                    }
+                int bsCount = std::min((int)pData->backspaceCount, MAX_BUFF);
+                for (_i = 0; _i < bsCount; _i++) {
+                    SendBackspace();
                 }
                 
                 //send new character

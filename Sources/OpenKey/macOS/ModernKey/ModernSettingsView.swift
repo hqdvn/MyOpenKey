@@ -351,6 +351,7 @@ struct SettingRow<Trailing: View>: View {
             Spacer()
 
             trailing
+                .accessibilityLabel(title)
         }
         .padding(.horizontal, 14)
         .padding(.vertical, 10)
@@ -994,7 +995,10 @@ class MacroState: ObservableObject {
             alert.addButton(withTitle: "Giữ lại")
             alert.addButton(withTitle: "Ghi đè tất cả")
             let keep = (alert.runModal() == .alertFirstButtonReturn)
-            _ = bridge.load(fromFile: url.path, keepCurrent: keep)
+            let success = bridge.load(fromFile: url.path, keepCurrent: keep)
+            if !success {
+                alertMessage = "Không thể nạp dữ liệu: file không có mục gõ tắt hợp lệ hoặc không đọc được."
+            }
             reload()
         }
     }
@@ -1007,7 +1011,10 @@ class MacroState: ObservableObject {
         panel.allowedContentTypes = [.plainText]
         panel.nameFieldStringValue = "MyOpenKeyMacro.txt"
         if panel.runModal() == .OK, let url = panel.url {
-            _ = bridge.export(toFile: url.path)
+            let success = bridge.export(toFile: url.path)
+            if !success {
+                alertMessage = "Không thể xuất file dữ liệu gõ tắt."
+            }
         }
     }
 }

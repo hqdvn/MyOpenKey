@@ -1,5 +1,45 @@
 # MyOpenKey Changelog
 
+##### MyOpenKey 0.1.07 (macOS) (Build 8) — 23/10/2026
+Phát triển bởi **Huỳnh Quốc Đạt** ([hqd.vn](https://hqd.vn) · [work@hqd.vn](mailto:work@hqd.vn))
+Dự án mã nguồn mở độc lập tại [github.com/hqdvn/MyOpenKey](https://github.com/hqdvn/MyOpenKey).
+
+- **Sửa lỗi bộ gõ cốt lõi (Core Engine):**
+  - E1: Kiểm tra `_index > 0` trước khi truy cập `TypingWord[_index - 1]` khi gõ ký tự `w`, `[`, `]` đầu từ.
+  - E3/E8: Kiểm tra giới hạn buffer khi xử lý phụ âm nhanh đầu/cuối (`checkQuickConsonant`), dùng `find()` thay vì `operator[]`; kẹp chặn chỉ số kết thúc theo `_index` khi phát lại phím macro.
+  - E5/E6: Kiểm tra biên an toàn `cursor + n <= size` khi đọc dữ liệu nhị phân macro (`initMacroMap`) và smart switch key (`initSmartSwitchKey`), tránh tràn bộ nhớ stack.
+  - E7: Bắt ngoại lệ `std::range_error` trong `utf8ToWideString` khi chuỗi UTF-8 không hợp lệ và trả về chuỗi rỗng.
+  - E9/A13: Giới hạn độ dài `hMacroKey` (tối đa 255), `_typingStates` (32 phần tử) và `_longWordHelper` (32 phần tử) khi gõ liên tục từ dài; kẹp giá trị `hBPC` tránh tràn kiểu `Byte`.
+  - E11: Từ chối phím tắt macro vượt quá 255 bytes hoặc nội dung vượt quá 65535 bytes; bỏ qua `bundleId` dài hơn 255 bytes khi lưu dữ liệu SmartSwitchKey.
+  - W1: Hỗ trợ bộ mã phím Windows đa nền tảng (`platforms/win32.h`, `CMakeLists.txt`, chạy CI build và test trên Windows).
+  - **Windows (thử nghiệm):** app khay hệ thống Win32 dùng chung engine, bộ cài Inno Setup + bản portable, CI build Windows.
+- **Sửa lỗi tầng ứng dụng (App Layer):**
+  - E4: Chặn crash khi `_syncKey` rỗng.
+  - E10: Giới hạn giá trị cài đặt lưu trữ cho `vCodeTable`, `vInputType`, bảng mã chuyển đổi và smart switch.
+  - P2/E12/E14: Viết lại `SendNewCharString` dạng vòng lặp chia khúc tối đa 16 unit, loại bỏ hoàn toàn đệ quy và không mất ký tự khi gửi chuỗi dài.
+  - E13: Kiểm tra an toàn con trỏ NULL đối với `UTF8String`.
+  - A1: Chuyển mã nhanh trong nền, không còn chặn bàn phím.
+  - A2: Khôi phục vùng chọn văn bản khi dùng AX fallback.
+  - A3: Sửa lỗi đảo ngược tùy chọn cảnh báo khi chuyển mã.
+  - A4: Công tắc tự động cập nhật điều khiển trực tiếp Sparkle, gỡ bỏ bộ kiểm tra `version.json` dư thừa.
+  - A5: Nhập file macro lỗi không làm mất macro cũ trong bộ nhớ.
+  - A6: Khắc phục rò rỉ bộ nhớ `CGEventSource`.
+  - A7: Reset trạng thái macro tiếng Anh khi click chuột.
+  - A8: Khôi phục cài đặt mặc định đồng bộ đúng trạng thái kiểm tra chính tả.
+  - A9: Không đăng ký lại login item mỗi lần chuyển đổi ngôn ngữ.
+  - A10: Bổ sung nhãn hỗ trợ VoiceOver cho người khiếm thị.
+  - A11: Bỏ qua xử lý khi con trỏ nằm trong ô mật khẩu an toàn.
+  - A12: Chuyển mã clipboard không làm mất các định dạng dữ liệu khác.
+- **CI & Đóng gói phát hành (P4):**
+  - Đưa `CERTIFICATE_P12` và `CERTIFICATE_PWD` lên `env` cấp job trong `release.yml`.
+  - Thắt chặt `generate_appcast` và `git push` trong `build_release.sh` và `release.yml`, kiểm tra `appcast.xml` có entry hợp lệ chứa chữ ký `sparkle:edSignature`.
+  - Ghim mã băm commit SHA đầy đủ cho `actions/checkout` (v7.0.1) và `softprops/action-gh-release` (v3.0.3).
+  - Dọn dẹp nhánh file tạm `/tmp/sparkle_private_key.txt`, xóa `XPCServices` khỏi Sparkle framework trước khi ký mã.
+  - Bổ sung quy trình CI `.github/workflows/ci.yml` tự động chạy bộ kiểm thử engine và build thử nghiệm Xcode trên macOS 14, kèm build/test engine trên Windows.
+- **Dọn dẹp kho mã nguồn (P5):**
+  - Thêm `xcuserdata/` vào `.gitignore` và hủy theo dõi các file giao diện người dùng Xcode.
+  - Nâng `MACOSX_DEPLOYMENT_TARGET` từ 12.0 lên 13.0 trong toàn bộ `project.pbxproj`.
+  - Dọn dẹp nhóm và file tham chiếu mồ côi `OpenKeyUpdate` khỏi dự án Xcode.
 ##### MyOpenKey 0.1.06 (macOS) (Build 7) — 28/09/2026
 Phát triển bởi **Huỳnh Quốc Đạt** ([hqd.vn](https://hqd.vn) · [work@hqd.vn](mailto:work@hqd.vn))
 Dự án mã nguồn mở độc lập tại [github.com/hqdvn/MyOpenKey](https://github.com/hqdvn/MyOpenKey).

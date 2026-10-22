@@ -93,6 +93,24 @@ Chi tiết xem tại [macOS_Build.md](macOS_Build.md).
 
 ---
 
+## 💻 Phát triển & Kiểm thử
+
+Chạy bộ kiểm thử hồi quy của bộ gõ (ASan/UBSan trên macOS và Windows key mappings, kèm kiểm thử chunk splitter):
+
+```bash
+bash Tests/run.sh
+```
+
+Bộ máy cốt lõi (C++ engine) hỗ trợ đa nền tảng và có thể biên dịch độc lập bằng CMake trên Windows:
+
+```bash
+cmake -B build
+cmake --build build --config Release
+ctest --test-dir build -C Release --output-on-failure
+```
+
+---
+
 ## 👨‍💻 Tác giả & Liên hệ
 
 - **Nhà phát triển:** **Huỳnh Quốc Đạt**

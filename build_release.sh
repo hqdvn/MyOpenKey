@@ -78,9 +78,8 @@ fi
 # (không có get-task-allow, notarization sẽ từ chối nếu có).
 echo "==> ✍️  Đang ký Developer ID (hardened runtime + timestamp)..."
 SPARKLE="$APP_PATH/Contents/Frameworks/Sparkle.framework"
+rm -rf "$SPARKLE/Versions/B/XPCServices"
 for component in \
-    "$SPARKLE/Versions/B/XPCServices/Downloader.xpc" \
-    "$SPARKLE/Versions/B/XPCServices/Installer.xpc" \
     "$SPARKLE/Versions/B/Autoupdate" \
     "$SPARKLE/Versions/B/Updater.app" \
     "$SPARKLE"; do
@@ -104,7 +103,7 @@ xcrun stapler staple "$APP_PATH"
 spctl --assess --type execute --verbose=2 "$APP_PATH"
 
 # Lấy phiên bản từ Info.plist
-VERSION=$(/usr/libexec/PlistBuddy -c "Print :CFBundleShortVersionString" "$APP_PATH/Contents/Info.plist" 2>/dev/null || echo "0.1.06")
+VERSION=$(/usr/libexec/PlistBuddy -c "Print :CFBundleShortVersionString" "$APP_PATH/Contents/Info.plist" 2>/dev/null || echo "0.1.07")
 echo "==> 📦 Phiên bản: $VERSION"
 
 DMG_NAME="MyOpenKey-$VERSION.dmg"
@@ -144,16 +143,21 @@ fi
 
 GEN_ARGS=(--download-url-prefix "https://github.com/hqdvn/MyOpenKey/releases/download/v$VERSION/")
 if [ -n "$SPARKLE_PRIVATE_KEY" ]; then
-    echo "$SPARKLE_PRIVATE_KEY" | ./Tools/sparkle/generate_appcast --ed-key-file - "${GEN_ARGS[@]}" "$APPCAST_STAGING/" || true
-elif [ -f "/tmp/sparkle_private_key.txt" ]; then
-    ./Tools/sparkle/generate_appcast --ed-key-file /tmp/sparkle_private_key.txt "${GEN_ARGS[@]}" "$APPCAST_STAGING/" || true
+    echo "$SPARKLE_PRIVATE_KEY" | ./Tools/sparkle/generate_appcast --ed-key-file - "${GEN_ARGS[@]}" "$APPCAST_STAGING/"
 else
-    ./Tools/sparkle/generate_appcast "${GEN_ARGS[@]}" "$APPCAST_STAGING/" || true
+    ./Tools/sparkle/generate_appcast "${GEN_ARGS[@]}" "$APPCAST_STAGING/"
 fi
 
 if [ -f "$APPCAST_STAGING/appcast.xml" ]; then
+    grep -q "MyOpenKey-$VERSION.dmg\".*sparkle:edSignature=" "$APPCAST_STAGING/appcast.xml" || {
+        echo "❌ Lỗi: dist/appcast.xml không chứa entry phiên bản mới kèm sparkle:edSignature!"
+        exit 1
+    }
     cp "$APPCAST_STAGING/appcast.xml" "dist/appcast.xml"
     cp "$APPCAST_STAGING/appcast.xml" "$ROOT_DIR/appcast.xml"
+else
+    echo "❌ Lỗi: không tìm thấy appcast.xml sau khi generate_appcast!"
+    exit 1
 fi
 rm -rf "$APPCAST_STAGING"
 

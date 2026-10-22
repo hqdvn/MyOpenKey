@@ -3,6 +3,7 @@ build/
 dist/
 DerivedData/
 *.xcuserstate
+xcuserdata/
 project.xcworkspace/xcuserdata/
 *.moved-aside
 *.ipa

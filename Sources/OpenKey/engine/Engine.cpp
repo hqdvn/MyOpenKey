@@ -121,7 +121,11 @@ void insertMark(const Uint32& markMask, const bool& canModifyFlag=true);
 
 static std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>> converter;
 wstring utf8ToWideString(const string& str) {
-    return converter.from_bytes(str.c_str());
+    try {
+        return converter.from_bytes(str.c_str());
+    } catch (const std::range_error&) {
+        return wstring();
+    }
 }
 
 string wideStringToUtf8(const wstring& str) {
@@ -345,6 +349,9 @@ void checkGrammar(const int& deltaBackSpace) {
 void insertKey(const Uint16& keyCode, const bool& isCaps, const bool& isCheckSpelling=true) {
     if (_index >= MAX_BUFF) {
         _longWordHelper.push_back(TypingWord[0]); //save long word
+        while (_longWordHelper.size() > 32) {
+            _longWordHelper.erase(_longWordHelper.begin());
+        }
         //left shift
         for (iii = 0; iii < MAX_BUFF - 1; iii++) {
             TypingWord[iii] = TypingWord[iii + 1];
@@ -374,6 +381,20 @@ void insertState(const Uint16& keyCode, const bool& isCaps) {
     }
 }
 
+void pushMacroKey(const Uint32& key) {
+    hMacroKey.push_back(key);
+    while (hMacroKey.size() > 255) {
+        hMacroKey.erase(hMacroKey.begin());
+    }
+}
+
+void pushTypingState(const vector<Uint32>& data) {
+    _typingStates.push_back(data);
+    while (_typingStates.size() > 32) {
+        _typingStates.pop_front();
+    }
+}
+
 void saveWord() {
     //save word history
     if (hCode != vReplaceMaro) {
@@ -382,12 +403,12 @@ void saveWord() {
                 _typingStatesData.clear();
                 for (i = 0; i < _longWordHelper.size(); i++) {
                     if (i != 0 && i % MAX_BUFF == 0) { //save if overflow
-                        _typingStates.push_back(_typingStatesData);
+                        pushTypingState(_typingStatesData);
                         _typingStatesData.clear();
                     }
                     _typingStatesData.push_back(_longWordHelper[i]);
                 }
-                _typingStates.push_back(_typingStatesData);
+                pushTypingState(_typingStatesData);
                 _longWordHelper.clear();
             }
             
@@ -396,18 +417,18 @@ void saveWord() {
             for (i = 0; i < _index; i++) {
                 _typingStatesData.push_back(TypingWord[i]);
             }
-            _typingStates.push_back(_typingStatesData);
+            pushTypingState(_typingStatesData);
         }
     } else { //save macro words
         _typingStatesData.clear();
         for (i = 0; i < hMacroData.size(); i++) {
             if (i != 0 && i % MAX_BUFF == 0) { //break if overflow
-                _typingStates.push_back(_typingStatesData);
+                pushTypingState(_typingStatesData);
                 _typingStatesData.clear();
             }
             _typingStatesData.push_back(hMacroData[i]);
         }
-        _typingStates.push_back(_typingStatesData);
+        pushTypingState(_typingStatesData);
     }
 }
 
@@ -416,7 +437,7 @@ void saveWord(const Uint32& keyCode, const int& count) {
     for (i = 0; i < count; i++) {
         _typingStatesData.push_back(keyCode);
     }
-    _typingStates.push_back(_typingStatesData);
+    pushTypingState(_typingStatesData);
 }
 
 void saveSpecialChar() {
@@ -424,7 +445,7 @@ void saveSpecialChar() {
     for (i = 0; i < _specialChar.size(); i++) {
         _typingStatesData.push_back(_specialChar[i]);
     }
-    _typingStates.push_back(_typingStatesData);
+    pushTypingState(_typingStatesData);
     _specialChar.clear();
 }
 
@@ -989,7 +1010,7 @@ void reverseLastStandaloneChar(const Uint32& keyCode, const bool& isCaps) {
 }
 
 void checkForStandaloneChar(const Uint16& data, const bool& isCaps, const Uint32& keyWillReverse) {
-    if (CHR(_index - 1) == keyWillReverse && TypingWord[_index - 1] & TONEW_MASK) {
+    if (_index > 0 && CHR(_index - 1) == keyWillReverse && TypingWord[_index - 1] & TONEW_MASK) {
         hCode = vWillProcess;
         hBPC = 1;
         hNCC = 1;
@@ -1231,10 +1252,11 @@ void vTempOffEngine(const bool& off) {
 }
 
 bool checkQuickConsonant() {
-    if (_index <= 1) return false;
+    if (_index <= 1 || _index >= MAX_BUFF - 1) return false;
     l = 0;
     if (_index > 0) {
-        if (vQuickStartConsonant && _quickStartConsonant.find(CHR(0)) != _quickStartConsonant.end()) {
+        auto itStart = _quickStartConsonant.find(CHR(0));
+        if (vQuickStartConsonant && itStart != _quickStartConsonant.end()) {
             hCode = vRestore;
             hBPC = _index;
             hNCC = _index + 1;
@@ -1244,26 +1266,28 @@ bool checkQuickConsonant() {
             for (i = _index-1; i >= 2; i--) {
                 TypingWord[i] = TypingWord[i-1];
             }
-            TypingWord[1] = _quickStartConsonant[CHR(0)][1] | ((TypingWord[0] & CAPS_MASK) && (TypingWord[2] & CAPS_MASK) ? CAPS_MASK : 0);
-            TypingWord[0] = _quickStartConsonant[CHR(0)][0] | (TypingWord[0] & CAPS_MASK ? CAPS_MASK : 0);
-            l = 1;;
+            TypingWord[1] = itStart->second[1] | ((TypingWord[0] & CAPS_MASK) && (TypingWord[2] & CAPS_MASK) ? CAPS_MASK : 0);
+            TypingWord[0] = itStart->second[0] | (TypingWord[0] & CAPS_MASK ? CAPS_MASK : 0);
+            l = 1;
         }
         if (vQuickEndConsonant &&
-            (_index-2 >= 0 && !IS_CONSONANT(CHR(_index-2))) &&
-            _quickEndConsonant.find(CHR(_index-1)) != _quickEndConsonant.end()) {
-            hCode = vRestore;
-            if (l == 1) {
-                hNCC++;
-            } else {
-                hBPC = 1;
-                hNCC = 2;
+            (_index-2 >= 0 && !IS_CONSONANT(CHR(_index-2)))) {
+            auto itEnd = _quickEndConsonant.find(CHR(_index-1));
+            if (itEnd != _quickEndConsonant.end()) {
+                hCode = vRestore;
+                if (l == 1) {
+                    hNCC++;
+                } else {
+                    hBPC = 1;
+                    hNCC = 2;
+                }
+                if (_index < MAX_BUFF-1)
+                    _index++;
+                TypingWord[_index-1] = itEnd->second[1] | (TypingWord[_index-2] & CAPS_MASK ? CAPS_MASK : 0);
+                TypingWord[_index-2] = itEnd->second[0] | (TypingWord[_index-2] & CAPS_MASK ? CAPS_MASK : 0);
+                
+                l = 1;
             }
-            if (_index < MAX_BUFF-1)
-                _index++;
-            TypingWord[_index-1] = _quickEndConsonant[CHR(_index-2)][1] | (TypingWord[_index-2] & CAPS_MASK ? CAPS_MASK : 0);
-            TypingWord[_index-2] = _quickEndConsonant[CHR(_index-2)][0] | (TypingWord[_index-2] & CAPS_MASK ? CAPS_MASK : 0);
-            
-            l = 1;
         }
         if (l == 1) {
             _hasHandleQuickConsonant = true;
@@ -1285,7 +1309,7 @@ void vEnglishMode(const vKeyEventState& state, const Uint16& data, const bool& i
     } else if (data == KEY_SPACE) {
         if (!_hasHandledMacro && findMacro(hMacroKey, hMacroData)) {
             hCode = vReplaceMaro;
-            hBPC = (Byte)hMacroKey.size();
+            hBPC = (Byte)(hMacroKey.size() > 255 ? 255 : hMacroKey.size());
         }
         hMacroKey.clear();
         _willTempOffEngine = false;
@@ -1302,7 +1326,7 @@ void vEnglishMode(const vKeyEventState& state, const Uint16& data, const bool& i
             _willTempOffEngine = false;
         } else {
             if (!_willTempOffEngine)
-                hMacroKey.push_back(data | (isCaps ? CAPS_MASK : 0));
+                pushMacroKey(data | (isCaps ? CAPS_MASK : 0));
         }
     }
 }
@@ -1324,7 +1348,7 @@ void vKeyHandleEvent(const vKeyEvent& event,
         //check macro feature
         if (vUseMacro && isMacroBreakCode(data) && !_hasHandledMacro && findMacro(hMacroKey, hMacroData)) {
             hCode = vReplaceMaro;
-            hBPC = (Byte)hMacroKey.size();
+            hBPC = (Byte)(hMacroKey.size() > 255 ? 255 : hMacroKey.size());
             _hasHandledMacro = true;
         } else if ((vQuickStartConsonant || vQuickEndConsonant) && !tempDisableKey && isMacroBreakCode(data)) {
             checkQuickConsonant();
@@ -1363,7 +1387,7 @@ void vKeyHandleEvent(const vKeyEvent& event,
         //insert key for macro function
         if (vUseMacro) {
             if (_isCharKeyCode) {
-                hMacroKey.push_back(data | (_isCaps ? CAPS_MASK : 0));
+                pushMacroKey(data | (_isCaps ? CAPS_MASK : 0));
             } else {
                 hMacroKey.clear();
             }
@@ -1383,7 +1407,7 @@ void vKeyHandleEvent(const vKeyEvent& event,
         }
         if (vUseMacro && !_hasHandledMacro && findMacro(hMacroKey, hMacroData)) { //macro
             hCode = vReplaceMaro;
-            hBPC = (Byte)hMacroKey.size();
+            hBPC = (Byte)(hMacroKey.size() > 255 ? 255 : hMacroKey.size());
             _spaceCount++;
             _hasHandledMacro = true;
         } else if ((vQuickStartConsonant || vQuickEndConsonant) && !tempDisableKey && checkQuickConsonant()) {
@@ -1513,15 +1537,19 @@ void vKeyHandleEvent(const vKeyEvent& event,
         //insert or replace key for macro feature
         if (vUseMacro) {
             if (hCode == vDoNothing) {
-                hMacroKey.push_back(data | (_isCaps ? CAPS_MASK : 0));
+                pushMacroKey(data | (_isCaps ? CAPS_MASK : 0));
             } else if (hCode == vWillProcess || hCode == vRestore) {
                 for (i = 0; i < hBPC; i++) {
                     if (hMacroKey.size() > 0) {
                         hMacroKey.pop_back();
                     }
                 }
-                for (i = _index - hBPC; i < hNCC + (_index - hBPC); i++) {
-                    hMacroKey.push_back(TypingWord[i]);
+                int startIdx = (int)_index - (int)hBPC;
+                if (startIdx < 0) startIdx = 0;
+                int endIdx = (int)hNCC + startIdx;
+                if (endIdx > (int)_index) endIdx = (int)_index;
+                for (i = startIdx; i < endIdx; i++) {
+                    pushMacroKey(TypingWord[i]);
                 }
             }
         }

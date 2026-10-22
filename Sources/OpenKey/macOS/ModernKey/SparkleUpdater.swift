@@ -24,8 +24,17 @@ import Sparkle
     }
     
     @objc public func start() {
-        // Đảm bảo singleton controller được khởi tạo sớm ngay khi app launch
-        _ = controller
+        let dontCheck = UserDefaults.standard.integer(forKey: "DontCheckUpdate") != 0
+        controller?.updater.automaticallyChecksForUpdates = !dontCheck
+    }
+
+    @objc public var automaticallyChecksForUpdates: Bool {
+        get {
+            controller?.updater.automaticallyChecksForUpdates ?? false
+        }
+        set {
+            controller?.updater.automaticallyChecksForUpdates = newValue
+        }
     }
     
     @objc public func checkForUpdates() {

@@ -79,21 +79,24 @@ static void convert(const string& str, vector<Uint32>& outData) {
  */
 void initMacroMap(const Byte* pData, const int& size) {
     macroMap.clear();
+    if (pData == NULL || size < 2) return;
     Uint16 macroCount = 0;
     Uint32 cursor = 0;
-    if (size >= 2) {
-        memcpy(&macroCount, pData + cursor, 2);
-        cursor+=2;
-    }
+    memcpy(&macroCount, pData + cursor, 2);
+    cursor += 2;
     Uint8 macroTextSize;
     Uint16 macroContentSize;
     for (int i = 0; i < macroCount; i++) {
+        if (cursor + 1 > (Uint32)size) break;
         macroTextSize = pData[cursor++];
+        if (cursor + macroTextSize > (Uint32)size) break;
         string macroText((char*)pData + cursor, macroTextSize);
         cursor += macroTextSize;
         
+        if (cursor + 2 > (Uint32)size) break;
         memcpy(&macroContentSize, pData + cursor, 2);
-        cursor+=2;
+        cursor += 2;
+        if (cursor + macroContentSize > (Uint32)size) break;
         string macroContent((char*)pData + cursor, macroContentSize);
         cursor += macroContentSize;
         
@@ -110,11 +113,17 @@ void initMacroMap(const Byte* pData, const int& size) {
 }
 
 void getMacroSaveData(vector<Byte>& outData) {
-    Uint16 totalMacro = (Uint16)macroMap.size();
+    Uint16 totalMacro = 0;
+    for (std::map<vector<Uint32>, MacroData>::iterator it = macroMap.begin(); it != macroMap.end(); ++it) {
+        if (it->second.macroText.size() <= 255 && it->second.macroContent.size() <= 65535) {
+            totalMacro++;
+        }
+    }
     outData.push_back((Byte)totalMacro);
     outData.push_back((Byte)(totalMacro>>8));
     
     for (std::map<vector<Uint32>, MacroData>::iterator it = macroMap.begin(); it != macroMap.end(); ++it) {
+        if (it->second.macroText.size() > 255 || it->second.macroContent.size() > 65535) continue;
         outData.push_back((Byte)it->second.macroText.size());
         for (int j = 0; j < it->second.macroText.size(); j++) {
             outData.push_back(it->second.macroText[j]);
@@ -214,6 +223,7 @@ void getAllMacro(vector<vector<Uint32>>& keys, vector<string>& macroTexts, vecto
 }
 
 bool addMacro(const string& macroText, const string& macroContent) {
+    if (macroText.size() > 255 || macroContent.size() > 65535) return false;
     vector<Uint32> key;
     convert(macroText, key);
     if (macroMap.find(key) == macroMap.end()) { //add new macro
@@ -283,7 +293,7 @@ void readFromFile(const string& path, const bool& append) {
 					}
 				}
 
-                if (name.compare("") != 0 && !hasMacro(name)) {
+                if (name.compare("") != 0 && name.size() <= 255 && content.size() <= 65535 && !hasMacro(name)) {
                     addMacro(name, content);
                 }
             }

@@ -10,6 +10,7 @@
 #import "MacroViewController.h"
 #import "MyOpenKey-Swift.h"
 #include "Engine.h"
+#include <fstream>
 
 extern int vAutoCapsMacro;
 
@@ -61,8 +62,11 @@ extern int vAutoCapsMacro;
 
 - (BOOL)addOrUpdateMacro:(NSString *)shortcut content:(NSString *)content {
     if (shortcut.length == 0 || content.length == 0) return NO;
-    string s = [shortcut UTF8String];
-    string c = [content UTF8String];
+    const char *sUtf8 = [shortcut UTF8String];
+    const char *cUtf8 = [content UTF8String];
+    if (!sUtf8 || !cUtf8) return NO;
+    string s = sUtf8;
+    string c = cUtf8;
     addMacro(s, c);
     [self saveMacroData];
     return YES;
@@ -70,7 +74,9 @@ extern int vAutoCapsMacro;
 
 - (BOOL)deleteMacro:(NSString *)shortcut {
     if (shortcut.length == 0) return NO;
-    string s = [shortcut UTF8String];
+    const char *sUtf8 = [shortcut UTF8String];
+    if (!sUtf8) return NO;
+    string s = sUtf8;
     if (deleteMacro(s)) {
         [self saveMacroData];
         return YES;
@@ -80,14 +86,73 @@ extern int vAutoCapsMacro;
 
 - (BOOL)loadFromFile:(NSString *)path keepCurrent:(BOOL)keepCurrent {
     if (!path) return NO;
-    readFromFile(path.UTF8String, keepCurrent);
+    const char *pUtf8 = path.UTF8String;
+    if (!pUtf8) return NO;
+
+    // Validate file and count valid macro entries before touching macroMap
+    std::ifstream checkFile(pUtf8);
+    if (!checkFile.is_open()) return NO;
+    std::string line;
+    int lineCount = 0;
+    int validEntries = 0;
+    while (std::getline(checkFile, line)) {
+        lineCount++;
+        if (lineCount == 1) continue;
+        size_t pos = line.find(":");
+        if (pos != std::string::npos) {
+            std::string name = line.substr(0, pos);
+            std::string content = line.substr(pos + 1);
+            while (name.empty() && !content.empty()) {
+                pos = content.find(":");
+                if (pos != std::string::npos) {
+                    name += ":";
+                    name += content.substr(0, pos);
+                    content = content.substr(pos + 1);
+                } else {
+                    break;
+                }
+            }
+            if (!name.empty()) {
+                validEntries++;
+            }
+        }
+    }
+    checkFile.close();
+
+    if (validEntries == 0) {
+        return NO;
+    }
+
+    // Backup current macros
+    vector<Byte> backupData;
+    getMacroSaveData(backupData);
+
+    readFromFile(pUtf8, keepCurrent);
+
+    // Verify macro map
+    vector<vector<Uint32>> keys;
+    vector<string> macroText;
+    vector<string> macroContent;
+    getAllMacro(keys, macroText, macroContent);
+    if (macroText.empty() && !backupData.empty()) {
+        initMacroMap(backupData.data(), (int)backupData.size());
+        return NO;
+    }
+
     [self saveMacroData];
     return YES;
 }
 
 - (BOOL)exportToFile:(NSString *)path {
     if (!path) return NO;
-    saveToFile(path.UTF8String);
+    const char *pUtf8 = path.UTF8String;
+    if (!pUtf8) return NO;
+    saveToFile(pUtf8);
+
+    NSDictionary *attrs = [[NSFileManager defaultManager] attributesOfItemAtPath:path error:nil];
+    if (!attrs || [attrs fileSize] == 0) {
+        return NO;
+    }
     return YES;
 }
 

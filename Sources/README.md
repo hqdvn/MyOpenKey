@@ -7,7 +7,7 @@ Thư mục này chứa toàn bộ mã nguồn của dự án **MyOpenKey**:
   - `ModernKey/`: Mã nguồn giao diện chính, cầu nối Objective-C (`OpenKeyBridge`) và giao diện hiện đại SwiftUI (`ModernSettingsView.swift`).
   - `OpenKeyHelper/`: Trình trợ giúp khởi động (legacy fallback).
   - `OpenKey.xcodeproj`: Dự án Xcode chính.
-
+- `Tests/` (thư mục gốc dự án): Bộ kiểm thử hồi quy cho Engine (`engine_test.cpp`, `run.sh`).
 ---
 
 - **Tác giả:** Huỳnh Quốc Đạt ([hqd.vn](https://hqd.vn) · [work@hqd.vn](mailto:work@hqd.vn))

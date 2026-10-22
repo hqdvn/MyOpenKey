@@ -25,6 +25,7 @@ extern void OnTableCodeChange(void);
 extern void OnInputMethodChanged(void);
 extern void RequestNewSession(void);
 extern void OnActiveAppChanged(void);
+extern void OnSpellCheckingChanged(void);
 
 //see document in Engine.h
 int vLanguage = 1;
@@ -124,10 +125,6 @@ extern bool convertToolDontAlertWhenCompleted;
     }
     [[NSUserDefaults standardUserDefaults] setInteger:1 forKey:@"NonFirstTime"];
     
-    //check update if enable
-    NSInteger dontCheckUpdate = [[NSUserDefaults standardUserDefaults] integerForKey:@"DontCheckUpdate"];
-    if (!dontCheckUpdate)
-        [OpenKeyManager checkNewVersion:nil callbackFunc:nil];
     
     //correct run on startup
     NSInteger val = [[NSUserDefaults standardUserDefaults] integerForKey:@"RunOnStartup"];
@@ -298,6 +295,7 @@ extern bool convertToolDontAlertWhenCompleted;
     vInputType = 0; [[NSUserDefaults standardUserDefaults] setInteger:vInputType forKey:@"InputType"];
     vFreeMark = 0; [[NSUserDefaults standardUserDefaults] setInteger:vFreeMark forKey:@"FreeMark"];
     vCheckSpelling = 1; [[NSUserDefaults standardUserDefaults] setInteger:vCheckSpelling forKey:@"Spelling"];
+    OnSpellCheckingChanged();
     vCodeTable = 0; [[NSUserDefaults standardUserDefaults] setInteger:vCodeTable forKey:@"CodeTable"];
     vSwitchKeyStatus = DEFAULT_SWITCH_STATUS; [[NSUserDefaults standardUserDefaults] setInteger:vCodeTable forKey:@"SwitchKeyStatus"];
     vQuickTelex = 0; [[NSUserDefaults standardUserDefaults] setInteger:vQuickTelex forKey:@"QuickTelex"];
@@ -328,22 +326,17 @@ extern bool convertToolDontAlertWhenCompleted;
 }
 
 -(void)setRunOnStartup:(BOOL)val {
-    if (@available(macOS 13.0, *)) {
-        SMAppService *service = [SMAppService mainAppService];
-        NSError *error = nil;
-        if (val) {
-            if (service.status != SMAppServiceStatusEnabled)
-                [service registerAndReturnError:&error];
-        } else {
-            if (service.status != SMAppServiceStatusNotRegistered)
-                [service unregisterAndReturnError:&error];
-        }
-        if (error)
-            NSLog(@"SMAppService: %@", error);
+    SMAppService *service = [SMAppService mainAppService];
+    NSError *error = nil;
+    if (val) {
+        if (service.status != SMAppServiceStatusEnabled)
+            [service registerAndReturnError:&error];
     } else {
-        CFStringRef appId = (__bridge CFStringRef)@"com.hqdvn.MyOpenKeyHelper";
-        SMLoginItemSetEnabled(appId, val);
+        if (service.status != SMAppServiceStatusNotRegistered)
+            [service unregisterAndReturnError:&error];
     }
+    if (error)
+        NSLog(@"SMAppService: %@", error);
     [[NSUserDefaults standardUserDefaults] setInteger:(val ? 1 : 0) forKey:@"RunOnStartup"];
 }
 
@@ -406,6 +399,8 @@ extern bool convertToolDontAlertWhenCompleted;
     [mnuVNI setState:NSControlStateValueOff];
     [mnuSimpleTelex1 setState:NSControlStateValueOff];
     [mnuSimpleTelex2 setState:NSControlStateValueOff];
+    if (intInputType < 0 || intInputType > 3)
+        intInputType = 0;
     if (intInputType == 0) {
         [mnuTelex setState:NSControlStateValueOn];
     } else if (intInputType == 1) {
@@ -428,6 +423,8 @@ extern bool convertToolDontAlertWhenCompleted;
     [mnuVNIWindows setState:NSControlStateValueOff];
     [mnuUnicodeComposite setState:NSControlStateValueOff];
     [mnuVietnameseLocaleCP1258 setState:NSControlStateValueOff];
+    if (intCode < 0 || intCode > 4)
+        intCode = 0;
     if (intCode == 0) {
         [mnuUnicode setState:NSControlStateValueOn];
     } else if (intCode == 1) {
@@ -441,10 +438,6 @@ extern bool convertToolDontAlertWhenCompleted;
     }
     vCodeTable = (int)intCode;
     
-    //
-    NSInteger intRunOnStartup = [[NSUserDefaults standardUserDefaults] integerForKey:@"RunOnStartup"];
-    [self setRunOnStartup:intRunOnStartup ? YES : NO];
-
 }
 
 -(void)onImputMethodChanged:(BOOL)willNotify {

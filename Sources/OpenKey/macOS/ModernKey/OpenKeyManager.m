@@ -8,6 +8,7 @@
 //
 
 #import "OpenKeyManager.h"
+#import <UniformTypeIdentifiers/UniformTypeIdentifiers.h>
 
 extern void OpenKeyInit(void);
 
@@ -136,6 +137,36 @@ static void reviveEventTap(void) {
 #pragma mark -Convert feature
 +(BOOL)quickConvert {
     NSPasteboard *pasteboard = [NSPasteboard generalPasteboard];
+    NSArray<NSPasteboardType> *types = pasteboard.types;
+    if (types == nil || types.count == 0) {
+        [self showMessage:nil message:@"Không có dữ liệu trong clipboard!" subMsg:@"Hãy sao chép một đoạn văn bản để chuyển đổi."];
+        return NO;
+    }
+
+    NSSet<NSString *> *allowedTypes = [NSSet setWithObjects:
+        NSPasteboardTypeString,
+        NSPasteboardTypeHTML,
+        @"public.utf8-plain-text",
+        @"public.utf16-plain-text",
+        @"public.utf16-external-plain-text",
+        @"public.html",
+        @"NSStringPboardType",
+        @"NSHTMLPboardType",
+        @"Apple HTML pasteboard type",
+        nil];
+
+    for (NSPasteboardType type in types) {
+        if ([allowedTypes containsObject:type]) continue;
+        UTType *ut = [UTType typeWithIdentifier:type];
+        if (ut && ([ut conformsToType:UTTypePlainText] || [ut conformsToType:UTTypeHTML])) {
+            continue;
+        }
+        [self showMessage:nil
+                  message:@"Không thể chuyển mã!"
+                   subMsg:@"Clipboard chứa định dạng dữ liệu khác ngoài văn bản thuần hoặc HTML. Đã huỷ chuyển mã để tránh mất dữ liệu."];
+        return NO;
+    }
+
     NSString *htmlString = [pasteboard stringForType:NSPasteboardTypeHTML];
     NSString *rawString = [pasteboard stringForType:NSPasteboardTypeString];
     bool converted = false;
@@ -172,68 +203,4 @@ static void reviveEventTap(void) {
     }
 }
 
-#pragma mark -AutoUpdate feature
-
-+(void)checkNewVersion:(NSWindow*)parent callbackFunc:(CheckNewVersionCallback) callback {
-    NSString *urlString = [NSString stringWithFormat:@"https://raw.githubusercontent.com/hqdvn/MyOpenKey/main/version.json?t=%ld", (long)[[NSDate date] timeIntervalSince1970]];
-    NSURLRequest *request = [NSURLRequest requestWithURL:[NSURL URLWithString:urlString]
-                                             cachePolicy:NSURLRequestReloadIgnoringLocalCacheData
-                                         timeoutInterval:15];
-    [[[NSURLSession sharedSession] dataTaskWithRequest:request completionHandler:^(NSData *data, NSURLResponse *response, NSError *error) {
-        NSDictionary *ver = nil;
-        if (!error && ((NSHTTPURLResponse *)response).statusCode == 200 && data) {
-            id object = [NSJSONSerialization JSONObjectWithData:data options:0 error:nil];
-            if ([object isKindOfClass:[NSDictionary class]] && [object[@"latestVersion"] isKindOfClass:[NSDictionary class]])
-                ver = object[@"latestVersion"];
-        }
-        dispatch_async(dispatch_get_main_queue(), ^{
-            if (callback != nil) {
-                callback();
-            }
-            if (ver == nil) {
-                // Startup check stays silent on failure; a manual check must always answer.
-                if (callback != nil)
-                    [self showMessage:parent message:@"Không kiểm tra được phiên bản mới!" subMsg:@"Vui lòng kiểm tra kết nối mạng rồi thử lại."];
-                return;
-            }
-            int versionCode = (int)[[ver valueForKey:@"versionCode"] integerValue];
-            int currentVersionCode = (int)[((NSString*)[[NSBundle mainBundle] objectForInfoDictionaryKey: @"CFBundleVersion"]) integerValue];
-            if (versionCode > currentVersionCode || callback != nil) {
-                [self showUpdateMessage:parent needUpdating:versionCode > currentVersionCode newVersion:[ver valueForKey:@"versionName"]];
-            }
-        });
-    }] resume];
-}
-
-+(void)showUpdateMessage:(NSWindow*)parent needUpdating:(BOOL)needUpdating newVersion:(NSString*)versionString {
-    NSAlert *alert = [[NSAlert alloc] init];
-    [alert setMessageText:(needUpdating ? [NSString stringWithFormat:@"MyOpenKey có phiên bản mới (%@), bạn có muốn tải về không?", versionString] : @"Bạn đang dùng phiên bản mới nhất!")];
-    [alert setInformativeText:(needUpdating ? @"Bấm 'Có' để mở trang tải MyOpenKey." : @"")];
-    
-    if (!needUpdating) {
-        [alert addButtonWithTitle:@"OK"];
-    } else {
-        [alert addButtonWithTitle:@"Có"];
-        [alert addButtonWithTitle:@"Không"];
-    }
-    if (parent == nil) {
-        [NSApp activateIgnoringOtherApps:YES];
-        [alert.window makeKeyAndOrderFront:nil];
-        [alert.window setLevel:NSFloatingWindowLevel];
-        NSModalResponse res = [alert runModal];
-        if (res == 1000 && needUpdating) {
-            [self openReleasesPage];
-        }
-    } else {
-        [alert beginSheetModalForWindow:parent completionHandler:^(NSModalResponse returnCode) {
-            if (returnCode == 1000 && needUpdating) {
-                [self openReleasesPage];
-            }
-        }];
-    }
-}
-
-+(void)openReleasesPage {
-    [[NSWorkspace sharedWorkspace] openURL:[NSURL URLWithString:@"https://github.com/hqdvn/MyOpenKey/releases/latest"]];
-}
 @end

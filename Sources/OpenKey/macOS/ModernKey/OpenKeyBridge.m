@@ -8,6 +8,7 @@
 #import "AppDelegate.h"
 #import <Carbon/Carbon.h>
 #import <ServiceManagement/ServiceManagement.h>
+#import "MyOpenKey-Swift.h"
 
 extern AppDelegate* appDelegate;
 extern void OnSpellCheckingChanged(void);
@@ -96,11 +97,7 @@ NSString * const kOpenKeySettingsDidChangeNotification = @"OpenKeySettingsDidCha
     _quickStartConsonant = [defs integerForKey:@"vQuickStartConsonant"] != 0;
     _quickEndConsonant = [defs integerForKey:@"vQuickEndConsonant"] != 0;
 
-    if (@available(macOS 13.0, *)) {
-        _runOnStartup = [SMAppService mainAppService].status == SMAppServiceStatusEnabled;
-    } else {
-        _runOnStartup = [defs integerForKey:@"RunOnStartup"] != 0;
-    }
+    _runOnStartup = [SMAppService mainAppService].status == SMAppServiceStatusEnabled;
     _showUIOnStartup = [defs integerForKey:@"ShowUIOnStartup"] != 0;
     _showIconOnDock = [defs integerForKey:@"vShowIconOnDock"] != 0;
     _grayIcon = [defs integerForKey:@"GrayIcon"] != 0;
@@ -423,6 +420,7 @@ NSString * const kOpenKeySettingsDidChangeNotification = @"OpenKeySettingsDidCha
 - (void)setCheckNewVersionOnStartup:(BOOL)val {
     _checkNewVersionOnStartup = val;
     [[NSUserDefaults standardUserDefaults] setInteger:(val ? 0 : 1) forKey:@"DontCheckUpdate"];
+    [SparkleUpdater shared].automaticallyChecksForUpdates = val;
 }
 
 #pragma mark - Lists & Metadata
@@ -436,7 +434,7 @@ NSString * const kOpenKeySettingsDidChangeNotification = @"OpenKeySettingsDidCha
 }
 
 - (NSString *)appVersion {
-    return [[NSBundle mainBundle] objectForInfoDictionaryKey:@"CFBundleShortVersionString"] ?: @"0.1.06";
+    return [[NSBundle mainBundle] objectForInfoDictionaryKey:@"CFBundleShortVersionString"] ?: @"0.1.07";
 }
 
 - (NSString *)appBuild {
@@ -461,7 +459,10 @@ NSString * const kOpenKeySettingsDidChangeNotification = @"OpenKeySettingsDidCha
 }
 
 - (void)checkNewVersion:(nullable NSWindow *)window callback:(void(^)(void))callback {
-    [OpenKeyManager checkNewVersion:window callbackFunc:callback];
+    [[SparkleUpdater shared] checkForUpdates];
+    if (callback) {
+        callback();
+    }
 }
 
 @end

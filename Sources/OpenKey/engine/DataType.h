@@ -80,7 +80,11 @@ struct vKeyHookState {
     vector<Uint32> macroData; //used for macro function; it is keycode data
 };
 
+#if defined(_WIN32) || defined(OPENKEY_WIN32_KEYS)
+#include "platforms/win32.h"
+#else
 #include "platforms/mac.h"
+#endif
 
 //internal engine data
 #define CAPS_MASK                               0x10000
