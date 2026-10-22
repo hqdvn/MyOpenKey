@@ -480,7 +480,7 @@ static INT_PTR CALLBACK SettingsDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPA
         wchar_t tab1[] = L"Bộ gõ";
         tie.pszText = tab1;
         TabCtrl_InsertItem(s_hTab, 0, &tie);
-        wchar_t tab2[] = L"Chính tả & gõ nhanh";
+        wchar_t tab2[] = L"Chính tả && gõ nhanh";
         tie.pszText = tab2;
         TabCtrl_InsertItem(s_hTab, 1, &tie);
         wchar_t tab3[] = L"Gõ tắt";

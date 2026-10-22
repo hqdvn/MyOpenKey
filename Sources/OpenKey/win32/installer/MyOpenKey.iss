@@ -1,4 +1,4 @@
-; MyOpenKey Inno Setup 6 Script
+﻿; MyOpenKey Inno Setup 6 Script
 ; Per-user installer for MyOpenKey (Win32)
 
 #ifndef MyAppVersion

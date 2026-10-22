@@ -1,5 +1,15 @@
 # MyOpenKey Changelog
 
+##### MyOpenKey 0.1.10 (Build 11) — 23/10/2026
+Phát triển bởi **Huỳnh Quốc Đạt** ([hqd.vn](https://hqd.vn) · [work@hqd.vn](mailto:work@hqd.vn))
+Dự án mã nguồn mở độc lập tại [github.com/hqdvn/MyOpenKey](https://github.com/hqdvn/MyOpenKey).
+
+- Windows: sửa lỗi hiển thị font chữ tiếng Việt (mojibake) trong Bảng điều khiển
+- Windows: sửa nhãn tab bị mất ký tự `&` và chồng lên nhau
+- Windows: bộ cài hiển thị đúng tiếng Việt
+- Windows: biểu tượng khay hiển thị đúng chữ V/E
+- macOS: không có thay đổi chức năng
+
 ##### MyOpenKey 0.1.09 (Build 10) — 23/10/2026
 Phát triển bởi **Huỳnh Quốc Đạt** ([hqd.vn](https://hqd.vn) · [work@hqd.vn](mailto:work@hqd.vn))
 Dự án mã nguồn mở độc lập tại [github.com/hqdvn/MyOpenKey](https://github.com/hqdvn/MyOpenKey).

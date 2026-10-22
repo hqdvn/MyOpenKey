@@ -41,8 +41,22 @@ static bool s_trayAdded = false;
 static int s_trayRetryCount = 0;
 
 static HICON CreateTextIcon(wchar_t letter, COLORREF bgColor, COLORREF textColor) {
-    int cx = GetSystemMetrics(SM_CXSMICON);
-    int cy = GetSystemMetrics(SM_CYSMICON);
+    int cx = 0;
+    int cy = 0;
+    HMODULE hUser32 = GetModuleHandleW(L"user32.dll");
+    if (hUser32) {
+        typedef UINT (WINAPI *GetDpiForSystemFn)();
+        typedef int (WINAPI *GetSystemMetricsForDpiFn)(int, UINT);
+        GetDpiForSystemFn pGetDpiForSystem = reinterpret_cast<GetDpiForSystemFn>(GetProcAddress(hUser32, "GetDpiForSystem"));
+        GetSystemMetricsForDpiFn pGetSystemMetricsForDpi = reinterpret_cast<GetSystemMetricsForDpiFn>(GetProcAddress(hUser32, "GetSystemMetricsForDpi"));
+        if (pGetDpiForSystem && pGetSystemMetricsForDpi) {
+            UINT dpi = pGetDpiForSystem();
+            cx = pGetSystemMetricsForDpi(SM_CXSMICON, dpi);
+            cy = pGetSystemMetricsForDpi(SM_CYSMICON, dpi);
+        }
+    }
+    if (cx <= 0) cx = GetSystemMetrics(SM_CXSMICON);
+    if (cy <= 0) cy = GetSystemMetrics(SM_CYSMICON);
     if (cx <= 0) cx = 16;
     if (cy <= 0) cy = 16;
 
@@ -80,15 +94,15 @@ static HICON CreateTextIcon(wchar_t letter, COLORREF bgColor, COLORREF textColor
     SetBkMode(hdcMem, TRANSPARENT);
     SetTextColor(hdcMem, textColor);
 
-    int fontHeight = -MulDiv(cy * 75, 100, 1);
+    int fontHeight = -MulDiv(cy, 80, 100);
     HFONT hFont = CreateFontW(fontHeight, 0, 0, 0, FW_BOLD, FALSE, FALSE, FALSE,
                               DEFAULT_CHARSET, OUT_DEFAULT_PRECIS, CLIP_DEFAULT_PRECIS,
-                              CLEARTYPE_QUALITY, DEFAULT_PITCH | FF_SWISS, L"Segoe UI");
+                              ANTIALIASED_QUALITY, DEFAULT_PITCH | FF_SWISS, L"Segoe UI");
     HFONT hOldFont = static_cast<HFONT>(SelectObject(hdcMem, hFont));
 
     RECT rc = { 0, 0, cx, cy };
     wchar_t text[2] = { letter, 0 };
-    DrawTextW(hdcMem, text, 1, &rc, DT_CENTER | DT_VCENTER | DT_SINGLELINE);
+    DrawTextW(hdcMem, text, 1, &rc, DT_CENTER | DT_VCENTER | DT_SINGLELINE | DT_NOPREFIX);
 
     SelectObject(hdcMem, hOldFont);
     DeleteObject(hFont);

@@ -33,6 +33,24 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
+      - name: Verify Win32 UTF-8 Encoding (RC code_page & ISS BOM)
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $rcFiles = Get-ChildItem -Path "Sources/OpenKey/win32" -Filter "*.rc"
+          foreach ($f in $rcFiles) {
+            $firstLine = (Get-Content -Path $f.FullName -TotalCount 1).Trim()
+            if ($firstLine -ne '#pragma code_page(65001)') {
+              Write-Error "$($f.Name) missing '#pragma code_page(65001)' on first line (found: '$firstLine')"
+              exit 1
+            }
+          }
+          $iss = "Sources/OpenKey/win32/installer/MyOpenKey.iss"
+          $bytes = [System.IO.File]::ReadAllBytes($iss)
+          if ($bytes.Length -lt 3 -or $bytes[0] -ne 0xEF -or $bytes[1] -ne 0xBB -or $bytes[2] -ne 0xBF) {
+            Write-Error "$iss is missing UTF-8 BOM"
+            exit 1
+          }
       - name: Configure CMake
         run: cmake -B build
 

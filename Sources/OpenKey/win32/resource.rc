@@ -1,3 +1,4 @@
+#pragma code_page(65001)
 #include <windows.h>
 #include <commctrl.h>
 #include "resource.h"
@@ -80,13 +81,13 @@ BEGIN
 
     GROUPBOX        "Thông tin ứng dụng", IDC_STATIC, 7, 115, 304, 75
     LTEXT           "MyOpenKey - Bộ gõ tiếng Việt", IDC_STATIC, 16, 132, 280, 12
-    LTEXT           "Phiên bản 0.1.09 (Build 10) - GPLv3", IDC_STATIC_VERSION, 16, 148, 280, 12
+    LTEXT           "Phiên bản 0.1.10 (Build 11) - GPLv3", IDC_STATIC_VERSION, 16, 148, 280, 12
     PUSHBUTTON      "Mã nguồn GitHub (hqdvn/MyOpenKey)", IDC_BTN_HOMEPAGE, 16, 166, 180, 16, WS_TABSTOP
 END
 
 VS_VERSION_INFO VERSIONINFO
-FILEVERSION     0,1,9,10
-PRODUCTVERSION  0,1,9,10
+FILEVERSION     0,1,10,11
+PRODUCTVERSION  0,1,10,11
 FILEFLAGSMASK   VS_FFI_FILEFLAGSMASK
 FILEFLAGS       0
 FILEOS          VOS_NT_WINDOWS32
@@ -99,12 +100,12 @@ BEGIN
         BEGIN
             VALUE "CompanyName", "MyOpenKey"
             VALUE "FileDescription", "MyOpenKey Vietnamese Input Method"
-            VALUE "FileVersion", "0.1.09"
+            VALUE "FileVersion", "0.1.10"
             VALUE "InternalName", "MyOpenKey"
             VALUE "LegalCopyright", "GPLv3"
             VALUE "OriginalFilename", "MyOpenKey.exe"
             VALUE "ProductName", "MyOpenKey"
-            VALUE "ProductVersion", "0.1.09"
+            VALUE "ProductVersion", "0.1.10"
         END
     END
     BLOCK "VarFileInfo"
