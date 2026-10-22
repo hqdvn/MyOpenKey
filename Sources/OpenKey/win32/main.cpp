@@ -136,8 +136,7 @@ static HICON CreateTextIcon(wchar_t letter, COLORREF bgColor, COLORREF textColor
 }
 
 static void SetTrayTip(NOTIFYICONDATAW& nid, const wchar_t* tip) {
-    wcsncpy(nid.szTip, tip, (sizeof(nid.szTip) / sizeof(wchar_t)) - 1);
-    nid.szTip[(sizeof(nid.szTip) / sizeof(wchar_t)) - 1] = L'\0';
+    wcsncpy_s(nid.szTip, tip, _TRUNCATE);
 }
 
 static bool AddTrayIcon(HWND hwnd) {
