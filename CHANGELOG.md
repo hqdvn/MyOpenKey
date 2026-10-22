@@ -1,5 +1,14 @@
 # MyOpenKey Changelog
 
+##### MyOpenKey 0.1.08 (Build 9) — 23/10/2026
+Phát triển bởi **Huỳnh Quốc Đạt** ([hqd.vn](https://hqd.vn) · [work@hqd.vn](mailto:work@hqd.vn))
+Dự án mã nguồn mở độc lập tại [github.com/hqdvn/MyOpenKey](https://github.com/hqdvn/MyOpenKey).
+
+- Windows: sửa lỗi thiếu `MSVCP140.dll` / `VCRUNTIME140.dll` / `VCRUNTIME140_1.dll` khi chạy trên máy chưa cài Visual C++ Redistributable (liên kết tĩnh C runtime)
+- Windows: nhúng lại manifest ứng dụng (DPI PerMonitorV2, Common Controls v6)
+- CI: kiểm tra exe Windows không phụ thuộc DLL runtime của Visual C++
+- macOS: không có thay đổi chức năng
+
 ##### MyOpenKey 0.1.07 (macOS) (Build 8) — 23/10/2026
 Phát triển bởi **Huỳnh Quốc Đạt** ([hqd.vn](https://hqd.vn) · [work@hqd.vn](mailto:work@hqd.vn))
 Dự án mã nguồn mở độc lập tại [github.com/hqdvn/MyOpenKey](https://github.com/hqdvn/MyOpenKey).

@@ -1,4 +1,6 @@
 cmake_minimum_required(VERSION 3.16)
+cmake_policy(SET CMP0091 NEW)
+set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
 project(MyOpenKey LANGUAGES CXX)
 
 set(CMAKE_CXX_STANDARD 17)
@@ -38,6 +40,7 @@ if(WIN32)
         Sources/OpenKey/win32/Hook.cpp
         Sources/OpenKey/win32/Settings.cpp
         Sources/OpenKey/win32/resource.rc
+        Sources/OpenKey/win32/app.manifest
     )
     target_include_directories(MyOpenKey PRIVATE
         Sources/OpenKey/engine

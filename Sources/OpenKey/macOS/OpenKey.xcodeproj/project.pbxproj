@@ -542,7 +542,7 @@
 				CODE_SIGN_IDENTITY = "Mac Developer";
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 8;
+				CURRENT_PROJECT_VERSION = 9;
 				DEVELOPMENT_TEAM = L4ADXX588J;
 				HEADER_SEARCH_PATHS = "";
 				FRAMEWORK_SEARCH_PATHS = (
@@ -555,7 +555,7 @@
 					"@executable_path/../Frameworks",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 13.0;
-				MARKETING_VERSION = 0.1.07;
+				MARKETING_VERSION = 0.1.08;
 				OTHER_LDFLAGS = (
 					"-lc++\n-lc++",
 				);
@@ -574,7 +574,7 @@
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 8;
+				CURRENT_PROJECT_VERSION = 9;
 				DEVELOPMENT_TEAM = L4ADXX588J;
 				HEADER_SEARCH_PATHS = "";
 				FRAMEWORK_SEARCH_PATHS = (
@@ -587,7 +587,7 @@
 					"@executable_path/../Frameworks",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 13.0;
-				MARKETING_VERSION = 0.1.07;
+				MARKETING_VERSION = 0.1.08;
 				OTHER_LDFLAGS = (
 					"-lc++\n-lc++",
 				);

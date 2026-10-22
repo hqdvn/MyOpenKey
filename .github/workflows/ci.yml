@@ -39,6 +39,27 @@ jobs:
       - name: Build Engine, Tests & App
         run: cmake --build build --config Release
 
+      - name: Verify Static CRT (No VC++ Runtime DLL Dependents)
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $dumpbin = & "${env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer\vswhere.exe" -latest -find "VC\Tools\MSVC\**\bin\Hostx64\x64\dumpbin.exe" | Select-Object -First 1
+          if (-not $dumpbin -or -not (Test-Path $dumpbin)) {
+            Write-Error "dumpbin.exe not found"
+            exit 1
+          }
+          $forbidden = '(?i)(MSVCP\d+|VCRUNTIME\d+(_\d+)?|api-ms-win-crt|ucrtbase)'
+          $targets = @("build/Release/MyOpenKey.exe", "build/Release/engine_test.exe")
+          foreach ($target in $targets) {
+            Write-Host "=== dumpbin /dependents $target ==="
+            $out = & $dumpbin /dependents $target | Out-String
+            Write-Host $out
+            if ($out -match $forbidden) {
+              Write-Error "Forbidden runtime dependency detected in $target"
+              exit 1
+            }
+          }
+
       - name: Run Engine Tests
         run: ctest --test-dir build -C Release --output-on-failure
 
