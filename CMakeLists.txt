@@ -44,7 +44,7 @@ if(WIN32)
         Sources/OpenKey/macOS/ModernKey
         Sources/OpenKey/win32
     )
-    target_compile_definitions(MyOpenKey PRIVATE OPENKEY_WIN32_KEYS)
+    target_compile_definitions(MyOpenKey PRIVATE OPENKEY_WIN32_KEYS NOMINMAX WIN32_LEAN_AND_MEAN)
     target_link_libraries(MyOpenKey PRIVATE
         openkey_engine
         user32
